@@ -4,11 +4,11 @@ First steps with rexfw
 
 What is rexfw about?
 --------------------
-rexfw is a simple (for me, at least...) Python 2.7 framework to enhance sampling in MCMC simulations using the Replica Exchange algorithm (RE; Swendsen & Wang, Phys. Rev. Lett. 1986). All you need to do is plug in your own probability distributions and MCMC samplers, which have to expose a simple interface to be compatible with this package. It can be easily extended to RE-related methods such as Replica Exchange with Nonequilibrium Switches (RENS; Ballard & Jarzynski, PNAS 2009).
+rexfw is a simple (for me, at least...) Python framework to enhance sampling in MCMC simulations using the Replica Exchange algorithm (RE; Swendsen & Wang, Phys. Rev. Lett. 1986). All you need to do is plug in your own probability distributions and MCMC samplers, which have to expose a simple interface to be compatible with this package. It can be easily extended to RE-related methods such as Replica Exchange with Nonequilibrium Switches (RENS; Ballard & Jarzynski, PNAS 2009).
 
 This is a rather naive, synchronous, and probably not super efficient implementation of RE which allows only one replica per process. It relies on MPI for communication between processes and can thus easily be run both on a cluster and on single machines.
 
-I use it to enhance sampling from complex posterior distributions arising in my research on Bayesian inference of chromosome structure (`Carstens et al., PLOS Comput. Biol. 2016 <http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005292>`_). I also implemented various RENS flavors to assess their performance in the above-mentioned sampling problems. These RENS implementations are also contained in the package, but require the Computational Structural Biology toolbox (CSB, `download <https://github.com/csb-toolbox/CSB>`_) and are not unit-tested (many components of it have unit tests in CSB, though).
+I use it to enhance sampling from complex posterior distributions arising in my research on Bayesian inference of chromosome structure (`Carstens et al., PLOS Comput. Biol. 2016 <http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005292>`_, `Carstens et al., PNAS 2020 <https://www.pnas.org/content/117/14/7824.abstract>`_).
 
 Setting up rexfw
 ----------------
@@ -29,7 +29,7 @@ To get started using rexfw, I recommend you to take a look at the file ``rexfw/t
     $ cd rexfw/test
     $ mpirun -n 6 python normal.py
     
-This will use six cores (one master process, five replicas) and write all simulation output to ``/tmp/normaltest_5replicas/``.
+You might have to add the ``--oversubscribe`` option to ``mpirun``. This will use six cores (one master process, five replicas) and write all simulation output to ``/tmp/normaltest_5replicas/``.
 
 Furthermore, there is a complete API documentation to be found in the ``doc`` directory and online at `<rexfw.readthedocs.io>`_.
 

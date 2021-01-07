@@ -6,7 +6,7 @@ from collections import deque
 
 from rexfw import Parcel
 from rexfw.communicators import AbstractCommunicator
-from rexfw.communicators.mpi import MPICommunicator
+# from rexfw.communicators.mpi import MPICommunicator
 
 
 class MockCommunicator(AbstractCommunicator):
@@ -65,19 +65,19 @@ class DoNothingRequestReceivingMockCommunicator(MockCommunicator):
         return parcel
 
 
-class testMPICommnicator(unittest.TestCase):
+# class testMPICommnicator(unittest.TestCase):
 
-    def setUp(self):
+#     def setUp(self):
 
-        self._comm = MPICommunicator()
+#         self._comm = MPICommunicator()
 
-    def testDestToRank(self):
+#     def testDestToRank(self):
 
-        pairs = (('replica6', 6), ('replica13', 13), ('replica133', 133),
-                 ('master0', 0), ('master10', 10))
+#         pairs = (('replica6', 6), ('replica13', 13), ('replica133', 133),
+#                  ('master0', 0), ('master10', 10))
 
-        for dest, rank in pairs:
-            self.assertEqual(self._comm._dest_to_rank(dest), rank)
+#         for dest, rank in pairs:
+#             self.assertEqual(self._comm._dest_to_rank(dest), rank)
 
 
 if __name__ == '__main__':

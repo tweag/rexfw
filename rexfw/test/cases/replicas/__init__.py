@@ -370,8 +370,6 @@ class testReplica(unittest.TestCase):
 
     def testGetEnergy(self):
 
-        from csb.statistics.samplers import State
-        
         self.assertEqual(self._replica.get_energy(5), -5)
         self.assertEqual(self._replica.get_energy(np.array([7]))[0], -7)
                 

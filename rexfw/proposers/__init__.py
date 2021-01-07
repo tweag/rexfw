@@ -2,15 +2,7 @@
 Defines the interface for proposer classes which propose states
 for RE, RENS, ... swaps
 '''
-
-import numpy
-
 from abc import abstractmethod
-
-from csb.statistics.samplers import State
-import csb.statistics.samplers.mc.neqsteppropagator as noneqprops
-
-from rexfw import Parcel
 
 
 class GeneralTrajectory(list):
@@ -31,15 +23,15 @@ class GeneralTrajectory(list):
 
         self.work = work
         self.heat = heat
-        
-        
+
+
 class AbstractProposer(object):
 
     def __init__(self, name):
         '''
         A class exposing the interface proposers need
         '''
-    
+
         self.name = name
 
     @abstractmethod
@@ -62,5 +54,3 @@ class AbstractProposer(object):
         :type params: :class:`.AbstractProposerParams`
         '''
         pass
-
-
