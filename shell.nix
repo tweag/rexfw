@@ -9,8 +9,8 @@ let
     installCheckPhase = ''
       cd rexfw/test && python run_tests.py
     '';
-    buildInputs = [ numpy ];
-    propagatedBuildInputs = buildInputs ++ [ mpi4py openmpi ];
+    buildInputs = [ numpy requests ];
+    propagatedBuildInputs = buildInputs ++ [ mpi4py openmpi requests ];
   };
 in
   pkgs.mkShell {

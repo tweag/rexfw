@@ -229,8 +229,10 @@ class StandardConsoleREStatisticsWriter(ConsoleStatisticsWriter):
 
     def _sort_quantities(self, quantities):
 
-        return sorted(quantities, key=lambda x: min([int(y[len('replica'):]) 
-                                                for y in x.origins]))
+        # for swap acceptance rates, origins is a list with of the form
+        # ['replica1', 'replica2']. We thus sort by the smaller replica index.
+        def key(x): return min([int(y[len('replica'):]) for y in x.origins])
+        return sorted(quantities, key=key)
     
     def _write_step_header(self, step):
         pass
@@ -311,7 +313,11 @@ class StandardFileMCMCStatisticsWriter(AbstractFileStatisticsWriter):
 
     def _sort_quantities(self, quantities):
 
-        return sorted(quantities, key=lambda x: int(list(x.origins)[0][len('replica'):]))
+        # for MCMC statistics, there is only one origin, which is
+        # a single replica (as compared to swap moves). So we sort by
+        # the replica index of the first and only entry of origins.
+        def key(x): return int(list(x.origins)[0][len('replica'):])
+        return sorted(quantities, key=key)
 
     def _write_quantity_class_header(self, quantity):
         pass
