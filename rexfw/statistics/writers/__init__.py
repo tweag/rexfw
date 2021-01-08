@@ -11,12 +11,9 @@ from abc import abstractmethod
 
 class AbstractStatisticsWriter(object):
 
-    def __init__(self, separator, variables_to_write=[], quantities_to_write=[]):
+    def __init__(self, variables_to_write=[], quantities_to_write=[]):
         '''
-        Base class for classes which write sampling statistics to stdout, files, ...
-
-        :param str separator: separator string separating values of different
-                              quantities in written output
+        Base class for classes which write sampling statistics.
 
         :param variables_to_write: list of sampling variable names for which to
                                    write statistics
@@ -26,7 +23,6 @@ class AbstractStatisticsWriter(object):
                                     write statistics
         :type quantities_to_write: list of :class:`.LoggedQuantity`
         '''
-        self._separator = separator
         self.variables_to_write = variables_to_write
         self.quantities_to_write = quantities_to_write
 
@@ -40,7 +36,28 @@ class AbstractStatisticsWriter(object):
         :type elements: list of :class:`.LoggedQuantity`
         '''
         pass
-    
+
+
+class AbstractTextStatisticsWriter(AbstractStatisticsWriter):
+    def __init__(self, separator, variables_to_write=[], quantities_to_write=[]):
+        '''
+        Base class for classes which write sampling statistics to some
+        text-based output, for example, stdout or a file.
+
+        :param str separator: separator string separating values of different
+                              quantities in written output
+
+        :param variables_to_write: list of sampling variable names for which to
+                                   write statistics
+        :type variables_to_write: list of str
+
+        :param quantities_to_write: list of :class:`.LoggedQuantity` objects for which to
+                                    write statistics
+        :type quantities_to_write: list of :class:`.LoggedQuantity`
+        '''
+        super().__init__(variables_to_write, quantities_to_write)
+        self._separator = separator
+
     def _write_single_quantity_stats(self, elements):
         '''
         Writes a single line to stdout / file, e.g., all sampler step sizes
@@ -53,9 +70,8 @@ class AbstractStatisticsWriter(object):
         for e in self._sort_quantities(elements):
             self._outstream.write(self._format(e) + self._separator)
         self._outstream.write('\n')
-           
-
-class ConsoleStatisticsWriter(AbstractStatisticsWriter):
+        
+class ConsoleStatisticsWriter(AbstractTextStatisticsWriter):
 
     def __init__(self, variables_to_write=[], quantities_to_write=[]):
         '''
@@ -220,7 +236,7 @@ class StandardConsoleREStatisticsWriter(ConsoleStatisticsWriter):
         pass
  
         
-class AbstractFileStatisticsWriter(AbstractStatisticsWriter):
+class AbstractFileStatisticsWriter(AbstractTextStatisticsWriter):
 
     def __init__(self, filename, variables_to_write=[], quantities_to_write=[]):
         '''
@@ -367,7 +383,7 @@ class StandardFileREStatisticsWriter(AbstractFileStatisticsWriter):
         self._write_single_quantity_stats(quantities)
 
 
-class StandardFileREWorksStatisticsWriter(AbstractStatisticsWriter):
+class StandardFileREWorksStatisticsWriter(AbstractTextStatisticsWriter):
 
     def __init__(self, outfolder):
         '''
@@ -388,7 +404,7 @@ class StandardFileREWorksStatisticsWriter(AbstractStatisticsWriter):
                 dump(e.values, opf)
 
 
-class StandardFileREHeatsStatisticsWriter(AbstractStatisticsWriter):
+class StandardFileREHeatsStatisticsWriter(AbstractTextStatisticsWriter):
     '''
     Writes heats produced during replica exchange swap trajectories to a file.        
 
