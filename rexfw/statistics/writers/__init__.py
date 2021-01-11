@@ -6,7 +6,7 @@ ATTENTION: some of these classes expect replica objects to be named replica1, re
 
 import sys
 
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 
 
 def sort_mcmc_quantities(quantities):
@@ -24,8 +24,8 @@ def sort_re_quantities(quantities):
     return sorted(quantities, key=key)
     
 
-class AbstractStatisticsWriter(object):
-
+class AbstractStatisticsWriter(metaclass=ABCMeta):
+    
     def __init__(self, variables_to_write=[], quantities_to_write=[]):
         '''
         Base class for classes which write sampling statistics.
