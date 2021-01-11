@@ -9,6 +9,21 @@ import sys
 from abc import abstractmethod
 
 
+def sort_mcmc_quantities(quantities):
+    # for MCMC statistics, there is only one origin, which is
+    # a single replica (as compared to swap moves). So we sort by
+    # the replica index of the first and only entry of origins.
+    def key(x): return int(list(x.origins)[0][len('replica'):])
+    return sorted(quantities, key=key)
+
+
+def sort_re_quantities(quantities):
+    # for swap acceptance rates, origins is a list with of the form
+    # ['replica1', 'replica2']. We thus sort by the smaller replica index.
+    def key(x): return min([int(y[len('replica'):]) for y in x.origins])
+    return sorted(quantities, key=key)
+    
+
 class AbstractStatisticsWriter(object):
 
     def __init__(self, variables_to_write=[], quantities_to_write=[]):
@@ -192,8 +207,7 @@ class StandardConsoleMCMCStatisticsWriter(ConsoleStatisticsWriter):
 
     def _sort_quantities(self, quantities):
 
-        return sorted(quantities,
-                      key=lambda x: int(list(x.origins)[0][len('replica'):]))
+        return sort_mcmc_quantities(quantities)
     
     def _write_quantity_class_header(self, quantity):
         
@@ -228,11 +242,7 @@ class StandardConsoleREStatisticsWriter(ConsoleStatisticsWriter):
         self._outstream.write('{:<10} {:>16}: '.format('RE', 'acceptance rate'))
 
     def _sort_quantities(self, quantities):
-
-        # for swap acceptance rates, origins is a list with of the form
-        # ['replica1', 'replica2']. We thus sort by the smaller replica index.
-        def key(x): return min([int(y[len('replica'):]) for y in x.origins])
-        return sorted(quantities, key=key)
+        return sort_re_quantities(quantities)
     
     def _write_step_header(self, step):
         pass
@@ -312,12 +322,7 @@ class StandardFileMCMCStatisticsWriter(AbstractFileStatisticsWriter):
         self._outstream.write('{}\t'.format(step))
 
     def _sort_quantities(self, quantities):
-
-        # for MCMC statistics, there is only one origin, which is
-        # a single replica (as compared to swap moves). So we sort by
-        # the replica index of the first and only entry of origins.
-        def key(x): return int(list(x.origins)[0][len('replica'):])
-        return sorted(quantities, key=key)
+        return sort_mcmc_quantities(quantities)
 
     def _write_quantity_class_header(self, quantity):
         pass
@@ -370,10 +375,8 @@ class StandardFileREStatisticsWriter(AbstractFileStatisticsWriter):
         self._outstream.write('{}\t'.format(step))
 
     def _sort_quantities(self, quantities):
-
-        return sorted(quantities, key=lambda x: min([int(y[len('replica'):]) 
-                                                     for y in x.origins]))
-
+        return sort_re_quantities(quantities)
+    
     def _write_quantity_class_header(self, class_name):
         pass
 
