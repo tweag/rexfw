@@ -11,6 +11,10 @@ from rexfw.remasters.requests import DumpSamplesRequest, SendStatsRequest
 
 from abc import abstractmethod
 
+## TODO: this probably shouldn't be here...
+from collections import namedtuple
+RESwapStats = namedtuple('RESwapStats', 'accepted works heats')
+
 
 class ExchangeMaster(object):
 
@@ -239,10 +243,6 @@ class ExchangeMaster(object):
         :param step: the sampling step at which the swaps were performed
         :type step: int
         '''
-
-        ## TODO: this shouldn't be here...
-        from collections import namedtuple
-        RESwapStats = namedtuple('RESwapStats', 'accepted works heats')
         
         for j, (replica1, replica2, _) in enumerate(swap_list):
             stats = RESwapStats(results[j][0], results[j][1], results[j][2])

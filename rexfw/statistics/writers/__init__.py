@@ -6,17 +6,29 @@ ATTENTION: some of these classes expect replica objects to be named replica1, re
 
 import sys
 
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 
 
-class AbstractStatisticsWriter(object):
+def sort_mcmc_quantities(quantities):
+    # for MCMC statistics, there is only one origin, which is
+    # a single replica (as compared to swap moves). So we sort by
+    # the replica index of the first and only entry of origins.
+    def key(x): return int(list(x.origins)[0][len('replica'):])
+    return sorted(quantities, key=key)
 
-    def __init__(self, separator, variables_to_write=[], quantities_to_write=[]):
+
+def sort_re_quantities(quantities):
+    # for swap acceptance rates, origins is a list with of the form
+    # ['replica1', 'replica2']. We thus sort by the smaller replica index.
+    def key(x): return min([int(y[len('replica'):]) for y in x.origins])
+    return sorted(quantities, key=key)
+    
+
+class AbstractStatisticsWriter(metaclass=ABCMeta):
+    
+    def __init__(self, variables_to_write=[], quantities_to_write=[]):
         '''
-        Base class for classes which write sampling statistics to stdout, files, ...
-
-        :param str separator: separator string separating values of different
-                              quantities in written output
+        Base class for classes which write sampling statistics.
 
         :param variables_to_write: list of sampling variable names for which to
                                    write statistics
@@ -26,7 +38,6 @@ class AbstractStatisticsWriter(object):
                                     write statistics
         :type quantities_to_write: list of :class:`.LoggedQuantity`
         '''
-        self._separator = separator
         self.variables_to_write = variables_to_write
         self.quantities_to_write = quantities_to_write
 
@@ -40,7 +51,28 @@ class AbstractStatisticsWriter(object):
         :type elements: list of :class:`.LoggedQuantity`
         '''
         pass
-    
+
+
+class AbstractTextStatisticsWriter(AbstractStatisticsWriter):
+    def __init__(self, separator, variables_to_write=[], quantities_to_write=[]):
+        '''
+        Base class for classes which write sampling statistics to some
+        text-based output, for example, stdout or a file.
+
+        :param str separator: separator string separating values of different
+                              quantities in written output
+
+        :param variables_to_write: list of sampling variable names for which to
+                                   write statistics
+        :type variables_to_write: list of str
+
+        :param quantities_to_write: list of :class:`.LoggedQuantity` objects for which to
+                                    write statistics
+        :type quantities_to_write: list of :class:`.LoggedQuantity`
+        '''
+        super().__init__(variables_to_write, quantities_to_write)
+        self._separator = separator
+
     def _write_single_quantity_stats(self, elements):
         '''
         Writes a single line to stdout / file, e.g., all sampler step sizes
@@ -53,9 +85,8 @@ class AbstractStatisticsWriter(object):
         for e in self._sort_quantities(elements):
             self._outstream.write(self._format(e) + self._separator)
         self._outstream.write('\n')
-           
-
-class ConsoleStatisticsWriter(AbstractStatisticsWriter):
+        
+class ConsoleStatisticsWriter(AbstractTextStatisticsWriter):
 
     def __init__(self, variables_to_write=[], quantities_to_write=[]):
         '''
@@ -176,8 +207,7 @@ class StandardConsoleMCMCStatisticsWriter(ConsoleStatisticsWriter):
 
     def _sort_quantities(self, quantities):
 
-        return sorted(quantities,
-                      key=lambda x: int(list(x.origins)[0][len('replica'):]))
+        return sort_mcmc_quantities(quantities)
     
     def _write_quantity_class_header(self, quantity):
         
@@ -212,15 +242,13 @@ class StandardConsoleREStatisticsWriter(ConsoleStatisticsWriter):
         self._outstream.write('{:<10} {:>16}: '.format('RE', 'acceptance rate'))
 
     def _sort_quantities(self, quantities):
-
-        return sorted(quantities, key=lambda x: min([int(y[len('replica'):]) 
-                                                for y in x.origins]))
+        return sort_re_quantities(quantities)
     
     def _write_step_header(self, step):
         pass
  
         
-class AbstractFileStatisticsWriter(AbstractStatisticsWriter):
+class AbstractFileStatisticsWriter(AbstractTextStatisticsWriter):
 
     def __init__(self, filename, variables_to_write=[], quantities_to_write=[]):
         '''
@@ -294,8 +322,7 @@ class StandardFileMCMCStatisticsWriter(AbstractFileStatisticsWriter):
         self._outstream.write('{}\t'.format(step))
 
     def _sort_quantities(self, quantities):
-
-        return sorted(quantities, key=lambda x: int(list(x.origins)[0][len('replica'):]))
+        return sort_mcmc_quantities(quantities)
 
     def _write_quantity_class_header(self, quantity):
         pass
@@ -348,10 +375,8 @@ class StandardFileREStatisticsWriter(AbstractFileStatisticsWriter):
         self._outstream.write('{}\t'.format(step))
 
     def _sort_quantities(self, quantities):
-
-        return sorted(quantities, key=lambda x: min([int(y[len('replica'):]) 
-                                                     for y in x.origins]))
-
+        return sort_re_quantities(quantities)
+    
     def _write_quantity_class_header(self, class_name):
         pass
 
@@ -367,7 +392,7 @@ class StandardFileREStatisticsWriter(AbstractFileStatisticsWriter):
         self._write_single_quantity_stats(quantities)
 
 
-class StandardFileREWorksStatisticsWriter(AbstractStatisticsWriter):
+class StandardFileREWorksStatisticsWriter(AbstractTextStatisticsWriter):
 
     def __init__(self, outfolder):
         '''
@@ -388,7 +413,7 @@ class StandardFileREWorksStatisticsWriter(AbstractStatisticsWriter):
                 dump(e.values, opf)
 
 
-class StandardFileREHeatsStatisticsWriter(AbstractStatisticsWriter):
+class StandardFileREHeatsStatisticsWriter(AbstractTextStatisticsWriter):
     '''
     Writes heats produced during replica exchange swap trajectories to a file.        
 
