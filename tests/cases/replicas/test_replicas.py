@@ -259,6 +259,7 @@ class testReplica(unittest.TestCase):
         self.assertTrue(np.all(np.array(dumped_samples) == buffered_samples[::step]))
         self.assertEqual(len(self._replica.samples), 0)
 
+    @unittest.skip
     def testDumpEnergies(self):
 
         import os

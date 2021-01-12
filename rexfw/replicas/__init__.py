@@ -15,7 +15,11 @@ class Replica(object):
     _current_master = None
     
     def __init__(self, name, state, pdf, sampler_class, sampler_params,
+<<<<<<< HEAD
                  proposers, storage, comm):
+=======
+                 proposers, samples_writer, comm):
+>>>>>>> 8d0a3f2... [WIP] work on abstracting sample writing
         '''
         Default replica class
 
