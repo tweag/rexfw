@@ -61,8 +61,10 @@ else:
 
     ## all additional parameters for the sampler go in this dict
     sampler_params = dict(stepsize=1.8, variable_name='x')
-    replica = setup_default_replica(init_state, pdf, RWMCSampler, sampler_params,
-                                    output_folder, comm, rank)
+    replica = setup_default_replica(
+        init_state, pdf, RWMCSampler, sampler_params,
+        FileSystemPickleStorageWriter(output_folder + 'samples/', 'wb'),
+        comm, rank)
     slave = Slave({replica.name: replica}, comm)
 
     ## starts infinite loop in slave to listen for messages

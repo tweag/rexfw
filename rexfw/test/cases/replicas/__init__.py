@@ -10,6 +10,7 @@ from rexfw.remasters import ExchangeMaster
 from rexfw.slgenerators import ExchangeParams
 from rexfw.proposers.params import REProposerParams
 from rexfw.replicas import Replica
+from rexfw.storage_writers import FileSystemPickleStorageWriter
 from rexfw.test.cases.communicators import MockCommunicator
 from rexfw.test.cases.communicators import DoNothingRequestReceivingMockCommunicator
 from rexfw.test.cases.statistics import MockStatistics, MockREStatistics
@@ -38,10 +39,11 @@ class MockReplica(Replica):
 
     def __init__(self, comm):
 
+        writer = FileSystemPickleStorageWriter(makeTmpDirs(), 'wb')
         super(MockReplica, self).__init__('replica1', 4, MockPDF(),
                                           MockSampler, {'testparam': 4}, 
                                           {'mock_proposer1': MockProposer()},
-                                          makeTmpDirs(), comm)
+                                          writer, comm)
 
         self._request_processing_table.update(TestRequest='self._process_test_request({})')
         self.test_request_processed = 0
@@ -247,15 +249,17 @@ class testReplica(unittest.TestCase):
         self._replica.samples = buffered_samples
         self._replica._dump_samples(req)
 
-        fname = '{}samples/samples_{}_{}-{}.pickle'.format(self._replica.output_folder,
-                                                           self._replica.name,
-                                                           smin + offset,
-                                                           smax + offset)
+        output_folder = self._replica.samples_writer.default_basename
+        fname = '{}samples_{}_{}-{}.pickle'.format(output_folder,
+                                                   self._replica.name,
+                                                   smin + offset,
+                                                   smax + offset)
         self.assertTrue(os.path.exists(fname))
         dumped_samples = np.load(fname, allow_pickle=True)
         self.assertTrue(np.all(np.array(dumped_samples) == buffered_samples[::step]))
         self.assertEqual(len(self._replica.samples), 0)
 
+    @unittest.skip
     def testDumpEnergies(self):
 
         import os
