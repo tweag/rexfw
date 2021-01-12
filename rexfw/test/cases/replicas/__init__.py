@@ -39,7 +39,7 @@ class MockReplica(Replica):
 
     def __init__(self, comm):
 
-        writer = FileSystemPickleStorageWriter(makeTmpDirs(), 'wb')
+        writer = FileSystemPickleStorageWriter(makeTmpDirs())
         super(MockReplica, self).__init__('replica1', 4, MockPDF(),
                                           MockSampler, {'testparam': 4}, 
                                           {'mock_proposer1': MockProposer()},

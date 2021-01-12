@@ -54,7 +54,7 @@ else:
     from rexfw.samplers.rwmc import RWMCSampler
     ## ... to sample from a normal distribution
     from rexfw.pdfs.normal import Normal
-
+    
     pdf = Normal(sigma=float(rank))
     np.random.seed(rank)
     init_state = np.array([np.random.normal()])
@@ -63,8 +63,7 @@ else:
     sampler_params = dict(stepsize=1.8, variable_name='x')
     replica = setup_default_replica(
         init_state, pdf, RWMCSampler, sampler_params,
-        FileSystemPickleStorageWriter(output_folder + 'samples/', 'wb'),
-        comm, rank)
+        output_folder, comm, rank)
     slave = Slave({replica.name: replica}, comm)
 
     ## starts infinite loop in slave to listen for messages

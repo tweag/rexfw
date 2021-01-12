@@ -226,7 +226,10 @@ def setup_default_replica(init_state, pdf, sampler_class, sampler_params,
     ## every kind of RE / RENS has its own proposer classes which 
     ## calculate proposal states for exchanges
     from rexfw.proposers.re import REProposer
-
+    ## We use a default writer which writes pickles objects to the
+    ## file system
+    from rexfw.storage_writers import FileSystemPickleStorageWriter
+    
     ## many objects have names to identify them when 
     ## forwarding messages coming in from the communicators
     ## these are default names required for the functions in the
@@ -239,13 +242,14 @@ def setup_default_replica(init_state, pdf, sampler_class, sampler_params,
     ## RE and RENS
     proposers = {proposer_name: proposer}
 
+    writer = FileSystemPickleStorageWriter(output_folder + 'samples')
     replica = Replica(name=replica_name, 
                       state=init_state, 
                       pdf=pdf,
                       sampler_class=sampler_class,
                       sampler_params=sampler_params,
                       proposers=proposers,
-                      output_folder=output_folder,
+                      samples_writer=writer,
                       comm=comm)
 
     return replica
