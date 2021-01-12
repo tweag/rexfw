@@ -243,8 +243,8 @@ def setup_default_replica(init_state, pdf, sampler_class, sampler_params,
     proposers = {proposer_name: proposer}
 
     writer = FileSystemPickleStorageWriter(output_folder + 'samples')
-    replica = Replica(name=replica_name, 
-                      state=init_state, 
+    replica = Replica(name=replica_name,
+                      state=init_state,
                       pdf=pdf,
                       sampler_class=sampler_class,
                       sampler_params=sampler_params,
