@@ -11,10 +11,10 @@ from rexfw.slgenerators import ExchangeParams
 from rexfw.proposers.params import REProposerParams
 from rexfw.replicas import Replica
 from rexfw.storage_writers import FileSystemPickleStorageWriter
-from rexfw.test.cases.communicators import MockCommunicator
-from rexfw.test.cases.communicators import DoNothingRequestReceivingMockCommunicator
-from rexfw.test.cases.statistics import MockStatistics, MockREStatistics
-from rexfw.test.cases.proposers import MockProposer
+from ..communicators import MockCommunicator
+from ..communicators import DoNothingRequestReceivingMockCommunicator
+from ..statistics import MockStatistics, MockREStatistics
+from ..proposers import MockProposer
 
 
 def makeTmpDirs():

@@ -4,7 +4,7 @@
 from collections import deque
 
 from rexfw.statistics import Statistics, REStatistics
-from rexfw.test.cases.statistics.writers import MockStatisticsWriter
+from .writers import MockStatisticsWriter
 
 
 class MockStatistics(Statistics):

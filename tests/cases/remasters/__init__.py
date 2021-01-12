@@ -9,11 +9,12 @@ from rexfw import Parcel
 from rexfw.remasters import ExchangeMaster
 from rexfw.slgenerators import ExchangeParams
 from rexfw.proposers.params import REProposerParams
-from rexfw.test.cases.communicators import MockCommunicator
-from rexfw.test.cases.communicators import DoNothingRequestReceivingMockCommunicator
-from rexfw.test.cases.statistics import MockStatistics, MockREStatistics
-from rexfw.test.cases.slgenerators import MockSwapListGenerator
-from rexfw.test.cases.proposers import MockProposer
+from ..communicators import MockCommunicator
+from ..communicators import DoNothingRequestReceivingMockCommunicator
+from ..communicators import WorkHeatReceivingMockCommunicator
+from ..statistics import MockStatistics, MockREStatistics
+from ..slgenerators import MockSwapListGenerator
+from ..proposers import MockProposer
 
 
 class MockExchangeMaster(ExchangeMaster):
@@ -197,8 +198,6 @@ class testExchangeMaster(unittest.TestCase):
             self.assertEqual(params.proposer_params.reverse_events, 2)           
 
     def testReceiveWorks(self):
-
-        from rexfw.test.cases.communicators import WorkHeatReceivingMockCommunicator
         
         self._setUpExchangeMaster(WorkHeatReceivingMockCommunicator())
         

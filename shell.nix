@@ -6,9 +6,6 @@ let
     pname = "rexfw";
     version = "0.1.0";
     src = pkgs.lib.cleanSource ./.;
-    installCheckPhase = ''
-      cd rexfw/test && python run_tests.py
-    '';
     buildInputs = [ numpy libcloud ];
     propagatedBuildInputs = buildInputs ++ [ mpi4py openmpi ];
   };
