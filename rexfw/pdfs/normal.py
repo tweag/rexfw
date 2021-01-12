@@ -14,3 +14,7 @@ class Normal(AbstractPDF):
     def log_prob(self, x):
         
         return -0.5 * (x - self.mu) ** 2 / self.sigma / self.sigma
+
+    def log_prob_gradient(self, x):
+
+        return -(x - self.mu) / self.sigma / self.sigma

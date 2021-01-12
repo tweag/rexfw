@@ -11,3 +11,7 @@ class AbstractPDF(object):
     @abstractmethod
     def log_prob(self, x):
         pass
+
+    @abstractmethod
+    def log_prob_gradient(self, x):
+        pass
