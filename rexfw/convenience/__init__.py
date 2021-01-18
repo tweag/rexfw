@@ -191,7 +191,7 @@ def setup_default_re_master(n_replicas, sim_path, comm):
     return master
 
 def setup_default_replica(init_state, pdf, sampler_class, sampler_params, 
-                          output_folder, comm, rank):
+                          storage, comm, rank):
     '''
     Creates a default :class:`.Replica` object for replica exchange. This should suffice
     for most applications.
@@ -210,7 +210,8 @@ def setup_default_replica(init_state, pdf, sampler_class, sampler_params,
     :param dict sampler_params: a dict containing additional keyword arguments your
                                 sampler might need
                                 
-    :param str output_folder: the folder where simulation output will be stored
+    :param storage: the storage backend used to write samples and energies
+    :type storage: :class:`resaas_lib.storage.AbstractStorage`
     
     :param comm: a :class:`.AbstractCommunicator` object responsible for communication
                  with the master object
@@ -242,14 +243,13 @@ def setup_default_replica(init_state, pdf, sampler_class, sampler_params,
     ## RE and RENS
     proposers = {proposer_name: proposer}
 
-    writer = FileSystemPickleStorageWriter(output_folder + 'samples')
     replica = Replica(name=replica_name,
                       state=init_state,
                       pdf=pdf,
                       sampler_class=sampler_class,
                       sampler_params=sampler_params,
                       proposers=proposers,
-                      samples_writer=writer,
+                      storage=storage,
                       comm=comm)
 
     return replica

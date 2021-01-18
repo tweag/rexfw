@@ -12,7 +12,7 @@ class Replica(object):
     _current_master = None
     
     def __init__(self, name, state, pdf, sampler_class, sampler_params,
-                 proposers, samples_writer, comm):
+                 proposers, storage, comm):
         '''
         Default replica class
 
@@ -38,9 +38,9 @@ class Replica(object):
                           with keys being the proposer names
         :type proposers: dict
 
-        :param samples_writer: writer object which writes samples and energies to
-                               permanent storage
-        :type samples_writer: :class:.`AbstractStorageWriter`
+        :param storage: storage backend which is used to write samples and 
+                        energies to permanent storage
+        :type storage: :class:.`resaas_lib.AbstractStorage`
 
         :param comm: a communicator object to communicate with the master object
                      and other replicas
@@ -205,25 +205,26 @@ class Replica(object):
         :param request: a request object containing information which samples to write
         :type request: :class:`.DumpSamplesRequest`
         '''
-        filename = 'samples_{}_{}-{}.pickle'.format(
+        filename = 'samples/samples_{}_{}-{}.pickle'.format(
             self.name, request.s_min + request.offset,
             request.s_max + request.offset)
-        self.samples_writer.write(self.samples[::request.dump_step], filename)
+        self.storage.write(self.samples[::request.dump_step], filename)
         self.samples = []
-        # self._dump_energies()
+        self._dump_energies(request)
 
-    # def _dump_energies(self):
-    #     '''
-    #     Updates files with replica energies and empties list of stored energies
-    #     '''
-    #     import numpy, os
+    def _dump_energies(self, request):
+        '''
+        Writes files with replica energies and empties list of stored energies
+        # TODO: write test
+        '''
+        import numpy
         
-    #     Es_folder = self.output_folder + 'energies/'
-    #     Es_filename = Es_folder + self.name + '.npy'
-    #     if os.path.exists(Es_filename):
-    #         self.energy_trace = list(numpy.load(Es_filename)) + self.energy_trace
-    #     numpy.save(Es_filename, numpy.array(self.energy_trace))
-    #     self.energy_trace = []
+        filename = 'energies/energies_{}_{}-{}.pickle'.format(
+            self.name, request.s_min + request.offset,
+            request.s_max + request.offset)
+        self.storage.write(numpy.array(self.energy_trace[::request.dump_step]),
+                           filename)
+        self.energy_trace = []
                 
     def process_request(self, request):
         '''
