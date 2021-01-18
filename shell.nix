@@ -9,6 +9,16 @@ let
     buildInputs = [ numpy libcloud ];
     propagatedBuildInputs = buildInputs ++ [ mpi4py openmpi ];
   };
+  resaas_lib = buildPythonPackage {
+    pname = "resaas";
+    version = "0.1.0";
+    src = fetchGit {
+      url = "git@github.com:tweag/resaas.git";
+      rev = "TODO";
+    };  
+    buildInputs = [ numpy libcloud pyyaml ];
+    propagatedBuildInputs = buildInputs;
+  };
 in
   pkgs.mkShell {
     buildInputs = [ rexfw ];
