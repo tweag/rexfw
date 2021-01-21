@@ -4,8 +4,11 @@ Replica classes which sample from a single PDF
 
 from abc import abstractmethod, abstractproperty
 
+import numpy as np
+
 from rexfw import Parcel
 from rexfw.replicas.requests import GetStateAndEnergyRequest, StoreStateEnergyRequest
+
 
 class Replica(object):
 
@@ -217,13 +220,10 @@ class Replica(object):
         Writes files with replica energies and empties list of stored energies
         # TODO: write test
         '''
-        import numpy
-        
         filename = 'energies/energies_{}_{}-{}.pickle'.format(
             self.name, request.s_min + request.offset,
             request.s_max + request.offset)
-        self.storage.write(numpy.array(self.energy_trace[::request.dump_step]),
-                           filename)
+        self.samples_writer.write(np.array(self.energy_trace[::request.dump_step]), filename)
         self.energy_trace = []
                 
     def process_request(self, request):

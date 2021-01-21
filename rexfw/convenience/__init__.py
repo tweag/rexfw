@@ -132,7 +132,7 @@ def create_default_stats_writers(sim_path, variable_name):
                                                               ['acceptance rate',
                                                                'stepsize'
                                                                ]),
-                          StandardFileMCMCStatisticsWriter(stats_path + '/mcmc_stats.txt',
+                          StandardFileMCMCStatisticsWriter(stats_path + 'mcmc_stats.txt',
                                                            [variable_name],
                                                            ['acceptance rate',
                                                             'stepsize'])
@@ -191,7 +191,7 @@ def setup_default_re_master(n_replicas, sim_path, comm):
     return master
 
 def setup_default_replica(init_state, pdf, sampler_class, sampler_params, 
-                          storage, comm, rank):
+                          pstorage, comm, rank):
     '''
     Creates a default :class:`.Replica` object for replica exchange. This should suffice
     for most applications.
@@ -210,8 +210,8 @@ def setup_default_replica(init_state, pdf, sampler_class, sampler_params,
     :param dict sampler_params: a dict containing additional keyword arguments your
                                 sampler might need
                                 
-    :param storage: the storage backend used to write samples and energies
-    :type storage: :class:`resaas_lib.storage.AbstractStorage`
+    :param pstorage: the storage backend used to write samples and energies
+    :type pstorage: :class:`resaas_lib.storage.AbstractStorage`
     
     :param comm: a :class:`.AbstractCommunicator` object responsible for communication
                  with the master object
@@ -249,7 +249,7 @@ def setup_default_replica(init_state, pdf, sampler_class, sampler_params,
                       sampler_class=sampler_class,
                       sampler_params=sampler_params,
                       proposers=proposers,
-                      storage=storage,
+                      storage=pstorage,
                       comm=comm)
 
     return replica
