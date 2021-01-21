@@ -193,7 +193,7 @@ def setup_default_re_master(n_replicas, sim_path, storage_backend, comm):
     return master
 
 def setup_default_replica(init_state, pdf, sampler_class, sampler_params, 
-                          storage, comm, rank):
+                          pstorage, comm, rank):
     '''
     Creates a default :class:`.Replica` object for replica exchange. This should suffice
     for most applications.
@@ -250,7 +250,7 @@ def setup_default_replica(init_state, pdf, sampler_class, sampler_params,
                       sampler_class=sampler_class,
                       sampler_params=sampler_params,
                       proposers=proposers,
-                      storage=storage,
+                      storage=pstorage,
                       comm=comm)
 
     return replica
