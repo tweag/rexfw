@@ -34,7 +34,7 @@ n_replicas = size - 1
 
 config_file = sys.argv[1]
 with open(config_file) as ipf:
-    config = yaml.load(ipf.read())
+    config = yaml.safe_load(ipf.read())
 # TODO: using a command line argument, we can set whether cloud or file system
 # storage should be used
 env = sys.argv[2]
