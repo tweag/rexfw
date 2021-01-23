@@ -64,7 +64,7 @@ if rank == 0:
                config['re']['swap_interval'],
                config['re']['status_interval'],
                config['re']['dump_interval'],
-               0,  # replica id offset parameter, best ignore
+               0,  # replica id offset parameter, ignore this
                5,  # dump interval, which thins written samples
                config['re']['statistics_update_interval'])
 
@@ -83,11 +83,12 @@ else:
     # every process with rank > 0 runs a replica, which does single-chain
     # sampling and proposes exchange states
 
+    # TODO: get this from config
     schedule = pstorage.read('schedule.pickle')
-
+    
     # For now, we sample from a normal distribution, but here would eventually
     # be the user code imported
-    pdf = Normal(sigma=1 / schedule['beta'][rank - 1] ** 2)
+    pdf = Normal(sigma=1 / np.sqrt(schedule['beta'][rank - 1]))
 
     # TODO: this is currently a bit annoying: we don't know the number of
     # variables. Either the user provides it in the pdf object or they have to
@@ -102,7 +103,7 @@ else:
     if timesteps_path := config['local_sampling']['timesteps'] is not None:
         timestep = pstorage.read(timesteps_path)[rank - 1]
     else:
-        timestep = 0.5
+        timestep = 1
 
     # We use a simple Metropolis-Hastings sampler with its only parameter
     # being the step size
