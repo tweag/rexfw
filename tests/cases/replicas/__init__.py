@@ -10,18 +10,14 @@ from rexfw.remasters import ExchangeMaster
 from rexfw.slgenerators import ExchangeParams
 from rexfw.proposers.params import REProposerParams
 from rexfw.replicas import Replica
-<<<<<<< HEAD:tests/cases/replicas/test_replicas.py
 from ..communicators.test_communicators import MockCommunicator
 from ..communicators.test_communicators import DoNothingRequestReceivingMockCommunicator
 from ..statistics import MockStatistics, MockREStatistics
 from ..proposers.test_proposers import MockProposer
-=======
-from rexfw.storage_writers import FileSystemPickleStorageWriter
 from ..communicators import MockCommunicator
 from ..communicators import DoNothingRequestReceivingMockCommunicator
 from ..statistics import MockStatistics, MockREStatistics
 from ..proposers import MockProposer
->>>>>>> 5280e30... Refactor test directory structure and test running:tests/cases/replicas/__init__.py
 
 from resaas.common.storage import SimulationStorage, LocalStorageBackend
 
@@ -46,8 +42,13 @@ class MockReplica(Replica):
 
     def __init__(self, comm):
 
+<<<<<<< HEAD
         storage = SimulationStorage('', sim_path='/test',
                                     storage_backend=MockStorageBackend())
+=======
+        storage = SimulationStorage('', sim_path=makeTmpDirs(),
+                                    storage_backend=LocalStorageBackend())
+>>>>>>> 10ebfbc... Use refactored resaas storage
         super(MockReplica, self).__init__('replica1', 4, MockPDF(),
                                           MockSampler, {'testparam': 4}, 
                                           {'mock_proposer1': MockProposer()},
@@ -258,16 +259,23 @@ class testReplica(unittest.TestCase):
         self._replica._dump_samples(req)
 
         output_folder = self._replica.storage.sim_path
+<<<<<<< HEAD
         fname = '{}/samples/samples_{}_{}-{}.pickle'.format(
             output_folder, self._replica.name, smin + offset,
             smax + offset)
         backend = self._replica.storage._storage_backend
         self.assertTrue(fname in backend.data)
         dumped_samples = backend.data[fname]
+=======
+        fname = '{}samples/samples_{}_{}-{}.pickle'.format(
+            output_folder, self._replica.name, smin + offset,
+            smax + offset)
+        self.assertTrue(os.path.exists(fname))
+        dumped_samples = np.load(fname, allow_pickle=True)
+>>>>>>> 10ebfbc... Use refactored resaas storage
         self.assertTrue(np.all(np.array(dumped_samples) == buffered_samples[::step]))
         self.assertEqual(len(self._replica.samples), 0)
 
-    @unittest.skip
     def testDumpEnergies(self):
 
         import os
@@ -278,6 +286,7 @@ class testReplica(unittest.TestCase):
         offset = 2
         step = 2
         req = DumpSamplesRequest('remaster45', smin, smax, offset, step)
+<<<<<<< HEAD
 
         self._replica.energy_trace = [3]
         self._replica._dump_energies(req)
@@ -288,6 +297,18 @@ class testReplica(unittest.TestCase):
             smax + offset)
         backend = self._replica.storage._storage_backend
         energies = backend.data[fname]
+=======
+
+        self._replica.energy_trace = [3]
+        self._replica._dump_energies(req)
+
+        output_folder = self._replica.storage.sim_path
+        fname = '{}energies/energies_{}_{}-{}.pickle'.format(
+            output_folder, self._replica.name, smin + offset,
+            smax + offset)
+        self.assertTrue(os.path.exists(fname))
+        energies = np.load(fname, allow_pickle=True)
+>>>>>>> 10ebfbc... Use refactored resaas storage
         self.assertEqual(len(energies), 1)
         self.assertEqual(energies[0], 3)
         self.assertEqual(len(self._replica.energy_trace), 0)

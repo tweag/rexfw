@@ -1,11 +1,7 @@
 import numpy as np
 import os, sys
 from mpi4py import MPI
-<<<<<<< HEAD
 from resaas.common.storage import LocalStorageBackend, SimulationStorage
-=======
-from resaas.lib.storage import FileSystemPickleStorage
->>>>>>> 57491aa... Update example script
 
 ## communicators are classes which serve as an interface between, say, MPI and the rexfw code
 ## other communicators could use, e.g., the Python multiprocessing module to
