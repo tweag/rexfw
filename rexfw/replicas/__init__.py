@@ -60,7 +60,7 @@ class Replica(object):
         self.sampler_class = sampler_class
         self.sampler_params = sampler_params
         self.proposers = proposers
-        self.samples_writer = samples_writer
+        self.storage = storage
         self._comm = comm
         self._setup_sampler()
 
@@ -208,10 +208,9 @@ class Replica(object):
         :param request: a request object containing information which samples to write
         :type request: :class:`.DumpSamplesRequest`
         '''
-        filename = 'samples/samples_{}_{}-{}.pickle'.format(
-            self.name, request.s_min + request.offset,
-            request.s_max + request.offset)
-        self.storage.write(self.samples[::request.dump_step], filename)
+        self.storage.save_samples(self.samples[::request.dump_step], self.name,
+                                  request.s_min + request.offset,
+                                  request.s_max + request.offset)
         self.samples = []
         self._dump_energies(request)
 
@@ -220,10 +219,10 @@ class Replica(object):
         Writes files with replica energies and empties list of stored energies
         # TODO: write test
         '''
-        filename = 'energies/energies_{}_{}-{}.pickle'.format(
+        self.storage.save_energies(np.array(
+            self.energy_trace[::request.dump_step]),
             self.name, request.s_min + request.offset,
             request.s_max + request.offset)
-        self.samples_writer.write(np.array(self.energy_trace[::request.dump_step]), filename)
         self.energy_trace = []
                 
     def process_request(self, request):

@@ -1,7 +1,7 @@
 import numpy as np
 import os, sys
 from mpi4py import MPI
-from resaas.lib.storage import FileSystemPickleStorage
+from resaas.common.storage import LocalStorageBackend, SimulationStorage
 
 ## communicators are classes which serve as an interface between, say, MPI and the rexfw code
 ## other communicators could use, e.g., the Python multiprocessing module to
@@ -62,9 +62,12 @@ else:
 
     ## all additional parameters for the sampler go in this dict
     sampler_params = dict(stepsize=1.8, variable_name='x')
+
+    storage = SimulationStorage('', output_folder,
+                                LocalStorageBackend())
     replica = setup_default_replica(
         init_state, pdf, RWMCSampler, sampler_params,
-        FileSystemPickleStorage(output_folder), comm, rank)
+        storage, comm, rank)
     slave = Slave({replica.name: replica}, comm)
 
     ## starts infinite loop in slave to listen for messages

@@ -191,7 +191,7 @@ def setup_default_re_master(n_replicas, sim_path, comm):
     return master
 
 def setup_default_replica(init_state, pdf, sampler_class, sampler_params, 
-                          pstorage, comm, rank):
+                          storage, comm, rank):
     '''
     Creates a default :class:`.Replica` object for replica exchange. This should suffice
     for most applications.
@@ -210,8 +210,8 @@ def setup_default_replica(init_state, pdf, sampler_class, sampler_params,
     :param dict sampler_params: a dict containing additional keyword arguments your
                                 sampler might need
                                 
-    :param pstorage: the storage backend used to write samples and energies
-    :type pstorage: :class:`resaas_lib.storage.AbstractStorage`
+    :param storage: the storage used to write samples and energies
+    :type pstorage: :class:`resaas.common.storage.SimulationStorage`
     
     :param comm: a :class:`.AbstractCommunicator` object responsible for communication
                  with the master object
@@ -229,7 +229,6 @@ def setup_default_replica(init_state, pdf, sampler_class, sampler_params,
     from rexfw.proposers.re import REProposer
     ## We use a default writer which writes pickles objects to the
     ## file system
-    from rexfw.storage_writers import FileSystemPickleStorageWriter
     
     ## many objects have names to identify them when 
     ## forwarding messages coming in from the communicators
@@ -249,7 +248,7 @@ def setup_default_replica(init_state, pdf, sampler_class, sampler_params,
                       sampler_class=sampler_class,
                       sampler_params=sampler_params,
                       proposers=proposers,
-                      storage=pstorage,
+                      storage=storage,
                       comm=comm)
 
     return replica

@@ -10,12 +10,12 @@ from rexfw.remasters import ExchangeMaster
 from rexfw.slgenerators import ExchangeParams
 from rexfw.proposers.params import REProposerParams
 from rexfw.replicas import Replica
-from rexfw.storage_writers import FileSystemPickleStorageWriter
 from ..communicators import MockCommunicator
 from ..communicators import DoNothingRequestReceivingMockCommunicator
 from ..statistics import MockStatistics, MockREStatistics
 from ..proposers import MockProposer
 
+from resaas.common.storage import SimulationStorage, LocalStorageBackend
 
 def makeTmpDirs():
 
@@ -39,11 +39,12 @@ class MockReplica(Replica):
 
     def __init__(self, comm):
 
-        writer = FileSystemPickleStorageWriter(makeTmpDirs())
+        storage = SimulationStorage('', sim_path=makeTmpDirs(),
+                                    storage_backend=LocalStorageBackend())
         super(MockReplica, self).__init__('replica1', 4, MockPDF(),
                                           MockSampler, {'testparam': 4}, 
                                           {'mock_proposer1': MockProposer()},
-                                          writer, comm)
+                                          storage, comm)
 
         self._request_processing_table.update(TestRequest='self._process_test_request({})')
         self.test_request_processed = 0
@@ -249,27 +250,33 @@ class testReplica(unittest.TestCase):
         self._replica.samples = buffered_samples
         self._replica._dump_samples(req)
 
-        output_folder = self._replica.samples_writer.default_basename
-        fname = '{}samples_{}_{}-{}.pickle'.format(output_folder,
-                                                   self._replica.name,
-                                                   smin + offset,
-                                                   smax + offset)
+        output_folder = self._replica.storage.sim_path
+        fname = '{}samples/samples_{}_{}-{}.pickle'.format(
+            output_folder, self._replica.name, smin + offset,
+            smax + offset)
         self.assertTrue(os.path.exists(fname))
         dumped_samples = np.load(fname, allow_pickle=True)
         self.assertTrue(np.all(np.array(dumped_samples) == buffered_samples[::step]))
         self.assertEqual(len(self._replica.samples), 0)
 
-    @unittest.skip
     def testDumpEnergies(self):
 
         import os
         import numpy as np
         from rexfw.remasters.requests import DumpSamplesRequest
 
-        self._replica.energy_trace = [3]
-        self._replica._dump_energies()
+        smin, smax = 3000, 4000
+        offset = 2
+        step = 2
+        req = DumpSamplesRequest('remaster45', smin, smax, offset, step)
 
-        fname = '{}energies/{}.npy'.format(self._replica.output_folder, self._replica.name)
+        self._replica.energy_trace = [3]
+        self._replica._dump_energies(req)
+
+        output_folder = self._replica.storage.sim_path
+        fname = '{}energies/energies_{}_{}-{}.pickle'.format(
+            output_folder, self._replica.name, smin + offset,
+            smax + offset)
         self.assertTrue(os.path.exists(fname))
         energies = np.load(fname, allow_pickle=True)
         self.assertEqual(len(energies), 1)
