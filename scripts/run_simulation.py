@@ -7,11 +7,6 @@ import yaml
 import numpy as np
 from mpi4py import MPI
 
-# gross hack to get around the issue of dependency on a module in a
-# subdirectory of a Git repositry
-# (https://github.com/python-poetry/poetry/pull/2242)
-sys.path.append(os.getenv('RESAAS_COMMON_PATH',
-                          '/home/simeon/projects/resaas/common/resaas/'))
 from resaas.common.storage import SimulationStorage, LocalStorageBackend, CloudStorageBackend
 
 from rexfw.convenience import setup_default_re_master
