@@ -7,6 +7,13 @@ import yaml
 import numpy as np
 from mpi4py import MPI
 
+# gross hack to get around the issue of dependency on a module in a
+# subdirectory of a Git repositry
+# (https://github.com/python-poetry/poetry/pull/2242)
+sys.path.append(os.getenv('RESAAS_COMMON_PATH',
+                          '/home/simeon/projects/resaas/common/resaas/'))
+from resaas.common.storage import SimulationStorage, LocalStorageBackend, CloudStorageBackend
+
 from rexfw.convenience import setup_default_re_master
 from rexfw.convenience import setup_default_replica
 from rexfw.slaves import Slave
@@ -14,12 +21,6 @@ from rexfw.samplers.rwmc import RWMCSampler
 from rexfw.pdfs.normal import Normal
 from rexfw.communicators.mpi import MPICommunicator
 
-# gross hack to get around the issue of dependency on a module in a
-# subdirectory of a Git repositry
-# (https://github.com/python-poetry/poetry/pull/2242)
-sys.path.append(os.getenv('RESAAS_COMMON_PATH',
-                          '/home/simeon/projects/resaas/common/resaas/'))
-from common.util import storage_factory
 
 # communicators are classes which serve as an interface between, say, MPI
 # and the rexfw code  other communicators could use, e.g., the Python
@@ -43,10 +44,17 @@ env = sys.argv[2]
 # etc.) are stored
 basename = config['general']['basename']
 output_folder = config['general']['output_path']
-abs_output_folder = basename + config['general']['output_path']
-pstorage, sstorage = storage_factory(abs_output_folder)
+# TODO: make statistics writing use RESAAS storage
+abs_output_folder = os.path.join(basename, output_folder)
+if env == 'local':
+    storage_backend = LocalStorageBackend()
+elif env == 'cloud':
+    # TODO: needs libcloud driver and container
+    storage_backend = CloudStorageBackend()
+storage = SimulationStorage(basename, output_folder, storage_backend)
+
 for stats_folder in ('statistics', 'works', 'heats'):
-    os.makedirs(abs_output_folder + stats_folder + '/', exist_ok=True)
+    os.makedirs(os.path.join(abs_output_folder, stats_folder), exist_ok=True)
 
 
 comm = MPICommunicator()
@@ -70,10 +78,10 @@ if rank == 0:
 
     # copy over final step sizes
     mcmc_stats_path = 'statistics/mcmc_stats.txt'
-    mcmc_stats_buffer = sstorage.read(mcmc_stats_path)
+    mcmc_stats_buffer = storage.load(mcmc_stats_path, data_type='text')
     timesteps = np.loadtxt(BytesIO(bytes(mcmc_stats_buffer, 'ascii')),
                            dtype=float)[-1, 2::2]
-    pstorage.write(timesteps, output_folder + 'final_timesteps.pickle')
+    storage.save_final_timesteps(timesteps)
 
     # send kill request to break from infinite message receiving loop in
     # replicas
@@ -83,9 +91,8 @@ else:
     # every process with rank > 0 runs a replica, which does single-chain
     # sampling and proposes exchange states
 
-    # TODO: get this from config
-    schedule = pstorage.read('schedule.pickle')
-    
+    schedule = storage.load_schedule()
+
     # For now, we sample from a normal distribution, but here would eventually
     # be the user code imported
     pdf = Normal(sigma=1 / np.sqrt(schedule['beta'][rank - 1]))
@@ -97,11 +104,10 @@ else:
     if config['general']['initial_states'] is None:
         init_state = np.random.normal(pdf.n_variables)
     else:
-        init_states_path = config['general']['initial_states']
-        init_state = pstorage.read(init_states_path)[rank - 1]
+        init_state = storage.load_initial_states()[rank - 1]
 
     if timesteps_path := config['local_sampling']['timesteps'] is not None:
-        timestep = pstorage.read(timesteps_path)[rank - 1]
+        timestep = storage.load_initial_timesteps()[rank - 1]
     else:
         timestep = 1
 
@@ -109,8 +115,7 @@ else:
     # being the step size
     sampler_params = {'stepsize': timestep}
     replica = setup_default_replica(
-        init_state, pdf, RWMCSampler, sampler_params,
-        pstorage, comm, rank)
+        init_state, pdf, RWMCSampler, sampler_params, storage, comm, rank)
 
     # the slaves are relicts; originally I thought them to pass on
     # messages from communicators to proposers / replicas, but now

@@ -223,7 +223,6 @@ class Replica(object):
             self.energy_trace[::request.dump_step]),
             self.name, request.s_min + request.offset,
             request.s_max + request.offset)
-        self.storage.write(np.array(self.energy_trace[::request.dump_step]), filename)
         self.energy_trace = []
                 
     def process_request(self, request):
