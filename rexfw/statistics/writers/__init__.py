@@ -3,7 +3,7 @@ StatisticsWriter classes which... well... write statistics to stdout / files / .
 
 ATTENTION: some of these classes expect replica objects to be named replica1, replica2, ...
 '''
-
+import io
 import sys
 
 from abc import abstractmethod
@@ -222,11 +222,15 @@ class StandardConsoleREStatisticsWriter(ConsoleStatisticsWriter):
         
 class AbstractFileStatisticsWriter(AbstractStatisticsWriter):
 
-    def __init__(self, filename, variables_to_write=[], quantities_to_write=[]):
+    def __init__(self, filename, storage_backend, variables_to_write=[],
+                 quantities_to_write=[]):
         '''
         Writes sampling statistics to a file.
 
         :param str filename: path to file to write sampling statistics to
+
+        :param storage_backend: storage backend to use for writing
+        :type storage_backed: :class:`AbstractStorageBackend`
 
         :param variables_to_write: list of sampling variable names for which to
                                    write statistics
@@ -240,31 +244,70 @@ class AbstractFileStatisticsWriter(AbstractStatisticsWriter):
         super(AbstractFileStatisticsWriter, self).__init__('\t',
                                                            variables_to_write,
                                                            quantities_to_write)
-        
+
         self._filename = filename
-        self._outstream = open(filename, 'w')
+        self._storage_backend = storage_backend
         self._write_header()
-        self._outstream.close()
         self._separator = '\t'
 
-    @abstractmethod
     def write(self, step, elements):
 
-        self._outstream = open(self._filename, 'a')
-        ## fill in here in subclasses
-        self._outstream.close()
-        
+        stream = io.StringIO()
+        try:
+            current_content = self._storage_backend.load(self._filename, data_type='text')
+        except:
+            # TODO: catch specific exception after refactoring in storage backend
+            current_content = ''
+        stream.write(current_content)
+        self._write_step_header(step, stream)
+        self._write_all_but_header(elements, stream)
+        stream.seek(0)
+        self._storage_backend.write(stream.read(), self._filename)
+
     @abstractmethod
-    def _write_quantity_class_header(self, class_name):
+    def _write_quantity_class_header(self, class_name, stream):
         pass
+
+    def _write_single_quantity_stats(self, elements, stream):
+        '''
+        Writes a single line to stdout / file, e.g., all sampler step sizes
+        which would be stored in elements
+
+        :param elements: quantities to write
+        :type elements: list of :class:`.LoggedQuantity`
+        '''
+        self._write_quantity_class_header(elements[0], stream)
+        for e in self._sort_quantities(elements):
+            stream.write(self._format(e) + self._separator)
+        stream.write('\n')
+    
+    def _format(self, quantity):
+
+        return str(quantity.current_value)
+
+    def _write_header(self):
+
+        pass
+
+    def _write_step_header(self, step, stream):
+
+        stream.write('{}\t'.format(step))
+
+    def _write_all_but_header(self, quantities, stream):
+
+        self._write_single_quantity_stats(quantities, stream)
+
 
 class StandardFileMCMCStatisticsWriter(AbstractFileStatisticsWriter):
 
-    def __init__(self, filename, variables_to_write=[], quantities_to_write=[]):
+    def __init__(self, filename, storage_backend, variables_to_write=[], quantities_to_write=[]):
         '''
         Writes acceptance rates and step sizes to a file.        
 
         :param str filename: path to file to write sampling statistics to
+
+        :param storage_backend: storage backend to use for writing
+        :type storage_backed: :class:`AbstractStorageBackend`
 
         :param variables_to_write: list of sampling variable names for which to
                                    write statistics
@@ -274,97 +317,55 @@ class StandardFileMCMCStatisticsWriter(AbstractFileStatisticsWriter):
                                     write statistics
         :type quantities_to_write: list of :class:`.LoggedQuantity`
         '''
-        
+
         super(StandardFileMCMCStatisticsWriter, self).__init__(filename,
+                                                               storage_backend,
                                                                variables_to_write,
                                                                quantities_to_write)
 
         self._separator = '\t'
-    
-    def _format(self, quantity):
-
-        return str(quantity.current_value)
-
-    def _write_header(self):
-
-        pass
-
-    def _write_step_header(self, step):
-
-        self._outstream.write('{}\t'.format(step))
 
     def _sort_quantities(self, quantities):
 
         return sorted(quantities, key=lambda x: int(list(x.origins)[0][len('replica'):]))
 
-    def _write_quantity_class_header(self, quantity):
+    def _write_quantity_class_header(self, quantity, stream):
         pass
 
-    def _write_all_but_header(self, quantities):
-
-        self._write_single_quantity_stats(quantities)
-
-    def write(self, step, elements):
-
-        self._outstream = open(self._filename, 'a')
-        self._write_step_header(step)
-        self._write_all_but_header(elements)
-        self._outstream.close()
-        
 
 class StandardFileREStatisticsWriter(AbstractFileStatisticsWriter):
-    '''
-    Writes replica exchange acceptance rates to a file.
+    def __init__(self, filename, storage_backend, quantities_to_write=[]):
+        '''
+        Writes replica exchange acceptance rates to a file.
 
-    :param str filename: path to file to write sampling statistics to
+        :param str filename: path to file to write sampling statistics to
 
-    :param variables_to_write: list of sampling variable names for which to
-                               write statistics
-    :type variables_to_write: list of str
+        :param storage_backend: storage backend to use for writing
+        :type storage_backed: :class:`AbstractStorageBackend`
 
-    :param quantities_to_write: list of :class:`.LoggedQuantity` objects for which to
-                                write statistics
-    :type quantities_to_write: list of :class:`.LoggedQuantity`
-    '''
+        :param variables_to_write: list of sampling variable names for which to
+                                   write statistics
+        :type variables_to_write: list of str
 
-    def __init__(self, filename, quantities_to_write=[]):
-                
+        :param quantities_to_write: list of :class:`.LoggedQuantity` objects for which to
+                                    write statistics
+        :type quantities_to_write: list of :class:`.LoggedQuantity`
+        '''
+
         super(StandardFileREStatisticsWriter, self).__init__(filename,
+                                                             storage_backend,
                                                              [],
                                                              quantities_to_write)
 
         self._separator = '\t'
-    
-    def _format(self, quantity):
-
-        return str(quantity.current_value)
-
-    def _write_header(self):
-
-        pass
-
-    def _write_step_header(self, step):
-
-        self._outstream.write('{}\t'.format(step))
 
     def _sort_quantities(self, quantities):
 
         return sorted(quantities, key=lambda x: min([int(y[len('replica'):]) 
                                                      for y in x.origins]))
 
-    def _write_quantity_class_header(self, class_name):
+    def _write_quantity_class_header(self, class_name, stream):
         pass
-
-    def write(self, step, elements):
-
-        self._outstream = open(self._filename, 'a')
-        self._write_step_header(step)
-        self._write_all_but_header(elements)
-        self._outstream.close()
-
-    def _write_all_but_header(self, quantities):
-
-        self._write_single_quantity_stats(quantities)
 
 
 class StandardFileREWorksStatisticsWriter(AbstractStatisticsWriter):

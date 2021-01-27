@@ -31,12 +31,13 @@ if rank == 0:
 
     create_directories(output_folder)
     ## sets up a default RE master object; should be sufficient for all practical purposes
-    master = setup_default_re_master(n_replicas, output_folder, comm)    
+    master = setup_default_re_master(n_replicas, output_folder, LocalStorageBackend(), comm)    
     master.run(10000,                    # number of MCMC samples
                swap_interval=5,          # interval of exchange attempts
                status_interval=50,       # interval with which to print / write out sampling statistics
                dump_interval=200,        # interval with which to dump samples to disk
-               dump_step=3               # samples dump step: write out only every i-th sample
+               dump_step=3,               # samples dump step: write out only every i-th sample
+               statistics_update_interval=25
         )
     ## send kill request to break from infinite message receiving loop in replicas
     master.terminate_replicas()

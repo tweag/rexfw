@@ -109,7 +109,7 @@ def create_default_stats_elements(replica_names, variable_name):
     
     return mcmc_pacc_avgs, re_pacc_avgs, stepsizes    
 
-def create_default_stats_writers(sim_path, variable_name):
+def create_default_stats_writers(sim_path, storage_backend, variable_name):
     '''
     Creates default statistics writers, which print sampling statistics
     on the screen or write it to a text file
@@ -125,7 +125,6 @@ def create_default_stats_writers(sim_path, variable_name):
     from rexfw.statistics.writers import StandardConsoleMCMCStatisticsWriter
     from rexfw.statistics.writers import StandardFileMCMCStatisticsWriter
     from rexfw.statistics.writers import StandardFileREStatisticsWriter
-    from rexfw.statistics.writers import StandardFileREWorksStatisticsWriter
 
     stats_path = sim_path + 'statistics/'
     mcmc_stats_writers = [StandardConsoleMCMCStatisticsWriter([variable_name],
@@ -133,23 +132,28 @@ def create_default_stats_writers(sim_path, variable_name):
                                                                'stepsize'
                                                                ]),
                           StandardFileMCMCStatisticsWriter(stats_path + 'mcmc_stats.txt',
+                                                           storage_backend,
                                                            [variable_name],
                                                            ['acceptance rate',
                                                             'stepsize'])
                          ]
     re_stats_writers = [StandardConsoleREStatisticsWriter(),
                         StandardFileREStatisticsWriter(stats_path + 're_stats.txt',
+                                                       storage_backend,
                                                        ['acceptance rate'])]
 
     return mcmc_stats_writers, re_stats_writers
 
-def setup_default_re_master(n_replicas, sim_path, comm):
+def setup_default_re_master(n_replicas, sim_path, storage_backend, comm):
     '''
     Creates a default :class:`.ExchangeMaster` object for Replica Exchange. This should suffice
     for most applications.
 
     :param int n_replicas: the number of replicas
     :param str sim_path: the folder where simulation output will be stored
+
+    :param storage_backend: storage backend to write to
+    :type storage_backend: :class:`AbstractStorageBackend`
     
     :param comm: a :class:`.AbstractCommunicator` object responsible for communication
                  with the replicas
@@ -163,7 +167,6 @@ def setup_default_re_master(n_replicas, sim_path, comm):
     from rexfw.statistics import Statistics, REStatistics
     from rexfw.convenience import create_default_RE_params
     from rexfw.convenience.statistics import create_default_works, create_default_heats
-    from rexfw.statistics.writers import StandardFileREWorksStatisticsWriter
 
     variable_name = 'x'
     replica_names = ['replica{}'.format(i) for i in range(1, n_replicas + 1)]
@@ -175,15 +178,14 @@ def setup_default_re_master(n_replicas, sim_path, comm):
     works = create_default_works(replica_names)
     heats = create_default_heats(replica_names)
     mcmc_stats_writers, re_stats_writers = create_default_stats_writers(sim_path,
+                                                                        storage_backend,
                                                                         variable_name='x')
     stats = Statistics(elements=mcmc_pacc_avgs + stepsizes, 
                        stats_writer=mcmc_stats_writers)
     works_path = sim_path + 'works/'
-    works_writers = [StandardFileREWorksStatisticsWriter(works_path)]
     re_stats = REStatistics(elements=re_pacc_avgs,
                             work_elements=works, heat_elements=heats,
-                            stats_writer=re_stats_writers,
-                            works_writer=works_writers)
+                            stats_writer=re_stats_writers)
     
     master = ExchangeMaster('master0', replica_names, params, comm=comm, 
                             sampling_statistics=stats, swap_statistics=re_stats)
