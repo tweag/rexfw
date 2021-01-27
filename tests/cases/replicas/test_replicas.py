@@ -17,6 +17,7 @@ from ..proposers.test_proposers import MockProposer
 
 from resaas.common.storage import SimulationStorage, LocalStorageBackend
 
+<<<<<<< HEAD
 
 class MockStorageBackend:
     data = {}
@@ -27,6 +28,19 @@ class MockStorageBackend:
     def read(self, file_name, data_type):
         return self.data[file_name]
 
+=======
+def makeTmpDirs():
+
+    import os
+    from tempfile import mkdtemp
+    
+    tmpdir = mkdtemp()
+    tmp_sample_folder = '{}/samples/'.format(tmpdir)
+    os.makedirs(tmp_sample_folder)
+    os.makedirs('{}/energies/'.format(tmpdir))        
+    
+    return tmpdir + '/'
+>>>>>>> a34e246... Mostly rename tests to have them discovered by pytest
 
 class MockPDF(object):
 
@@ -259,7 +273,6 @@ class testReplica(unittest.TestCase):
         self.assertTrue(np.all(np.array(dumped_samples) == buffered_samples[::step]))
         self.assertEqual(len(self._replica.samples), 0)
 
-    @unittest.skip
     def testDumpEnergies(self):
 
         import os

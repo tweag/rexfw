@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 '''
 '''
 
@@ -9,21 +10,12 @@ from rexfw import Parcel
 from rexfw.remasters import ExchangeMaster
 from rexfw.slgenerators import ExchangeParams
 from rexfw.proposers.params import REProposerParams
-<<<<<<< HEAD:tests/cases/remasters/test_remasters.py
 from ..communicators.test_communicators import MockCommunicator
 from ..communicators.test_communicators import DoNothingRequestReceivingMockCommunicator
 from ..communicators.test_communicators import WorkHeatReceivingMockCommunicator
 from ..statistics import MockStatistics, MockREStatistics
 from ..slgenerators.test_slgenerators import MockSwapListGenerator
 from ..proposers.test_proposers import MockProposer
-=======
-from ..communicators import MockCommunicator
-from ..communicators import DoNothingRequestReceivingMockCommunicator
-from ..communicators import WorkHeatReceivingMockCommunicator
-from ..statistics import MockStatistics, MockREStatistics
-from ..slgenerators import MockSwapListGenerator
-from ..proposers import MockProposer
->>>>>>> 5280e30... Refactor test directory structure and test running:tests/cases/remasters/__init__.py
 
 
 class MockExchangeMaster(ExchangeMaster):
