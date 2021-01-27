@@ -3,14 +3,13 @@ name = "rexfw"
 version = "0.1.0"
 description = "Replica Exchange for computing clusters"
 authors = ["simeoncarstens <simeon.carstens@tweag.io>"]
-# packages = [ { include = "resaas/schedule_estimation/" } ]
 
 [tool.poetry.dependencies]
 python = "^3.8"
 numpy = "*"
 mpi4py = "*"
 pyyaml = "*"
-resaas-common = { path = "../../resaas/common/"  }
+resaas-common = { path = "resaas/common", develop = true }
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.1"
@@ -35,6 +34,7 @@ build-backend = "poetry.core.masonry.api"
 minversion = "6.0"
 env_override_existing_values = 1
 env_files = [".env"]
+norecursedirs = ["resaas"]
 
 [tool.coverage.run]
 omit = ["*test*"]
