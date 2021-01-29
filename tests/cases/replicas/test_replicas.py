@@ -10,23 +10,23 @@ from rexfw.remasters import ExchangeMaster
 from rexfw.slgenerators import ExchangeParams
 from rexfw.proposers.params import REProposerParams
 from rexfw.replicas import Replica
-from rexfw.test.cases.communicators import MockCommunicator
-from rexfw.test.cases.communicators import DoNothingRequestReceivingMockCommunicator
-from rexfw.test.cases.statistics import MockStatistics, MockREStatistics
-from rexfw.test.cases.proposers import MockProposer
+from ..communicators.test_communicators import MockCommunicator
+from ..communicators.test_communicators import DoNothingRequestReceivingMockCommunicator
+from ..statistics import MockStatistics, MockREStatistics
+from ..proposers.test_proposers import MockProposer
+
+from resaas.common.storage import SimulationStorage, LocalStorageBackend
 
 
-def makeTmpDirs():
+class MockStorageBackend:
+    data = {}
 
-    import os
-    from tempfile import mkdtemp
-    
-    tmpdir = mkdtemp()
-    tmp_sample_folder = '{}/samples/'.format(tmpdir)
-    os.makedirs(tmp_sample_folder)
-    os.makedirs('{}/energies/'.format(tmpdir))        
-    
-    return tmpdir + '/'
+    def write(self, data, file_name, data_type):
+        self.data[file_name] = data
+
+    def read(self, file_name, data_type):
+        return self.data[file_name]
+
 
 class MockPDF(object):
 
@@ -38,10 +38,12 @@ class MockReplica(Replica):
 
     def __init__(self, comm):
 
+        storage = SimulationStorage('', sim_path='/test',
+                                    storage_backend=MockStorageBackend())
         super(MockReplica, self).__init__('replica1', 4, MockPDF(),
                                           MockSampler, {'testparam': 4}, 
                                           {'mock_proposer1': MockProposer()},
-                                          makeTmpDirs(), comm)
+                                          storage, comm)
 
         self._request_processing_table.update(TestRequest='self._process_test_request({})')
         self.test_request_processed = 0
@@ -247,12 +249,13 @@ class testReplica(unittest.TestCase):
         self._replica.samples = buffered_samples
         self._replica._dump_samples(req)
 
-        fname = '{}samples/samples_{}_{}-{}.pickle'.format(self._replica.output_folder,
-                                                           self._replica.name,
-                                                           smin + offset,
-                                                           smax + offset)
-        self.assertTrue(os.path.exists(fname))
-        dumped_samples = np.load(fname, allow_pickle=True)
+        output_folder = self._replica.storage.sim_path
+        fname = '{}/samples/samples_{}_{}-{}.pickle'.format(
+            output_folder, self._replica.name, smin + offset,
+            smax + offset)
+        backend = self._replica.storage._storage_backend
+        self.assertTrue(fname in backend.data)
+        dumped_samples = backend.data[fname]
         self.assertTrue(np.all(np.array(dumped_samples) == buffered_samples[::step]))
         self.assertEqual(len(self._replica.samples), 0)
 
@@ -262,12 +265,20 @@ class testReplica(unittest.TestCase):
         import numpy as np
         from rexfw.remasters.requests import DumpSamplesRequest
 
-        self._replica.energy_trace = [3]
-        self._replica._dump_energies()
+        smin, smax = 3000, 4000
+        offset = 2
+        step = 2
+        req = DumpSamplesRequest('remaster45', smin, smax, offset, step)
 
-        fname = '{}energies/{}.npy'.format(self._replica.output_folder, self._replica.name)
-        self.assertTrue(os.path.exists(fname))
-        energies = np.load(fname, allow_pickle=True)
+        self._replica.energy_trace = [3]
+        self._replica._dump_energies(req)
+
+        output_folder = self._replica.storage.sim_path
+        fname = '{}/energies/energies_{}_{}-{}.pickle'.format(
+            output_folder, self._replica.name, smin + offset,
+            smax + offset)
+        backend = self._replica.storage._storage_backend
+        energies = backend.data[fname]
         self.assertEqual(len(energies), 1)
         self.assertEqual(energies[0], 3)
         self.assertEqual(len(self._replica.energy_trace), 0)

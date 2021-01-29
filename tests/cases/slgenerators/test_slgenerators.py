@@ -2,7 +2,7 @@
 '''
 
 from rexfw.slgenerators import AbstractSwapListGenerator, ExchangeParams
-from rexfw.test.cases.proposers.params import MockProposerParams
+from ..proposers.params import MockProposerParams
 
 
 class MockSwapListGenerator(AbstractSwapListGenerator):

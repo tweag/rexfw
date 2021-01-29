@@ -6,7 +6,7 @@ from collections import deque
 
 from rexfw.proposers import AbstractProposer, GeneralTrajectory
 from rexfw.proposers.re import REProposer
-from rexfw.test.cases.communicators import MockCommunicator
+from ..communicators.test_communicators import MockCommunicator
 
 
 class MockProposer(AbstractProposer):
@@ -29,7 +29,8 @@ class testREProposer(unittest.TestCase):
 
     def testPropose(self):
 
-        from rexfw.test.cases.replicas import CalculateProposalMockReplica
+        # to avoid circular import
+        from ..replicas.test_replicas import CalculateProposalMockReplica
 
         replica = CalculateProposalMockReplica(MockCommunicator())
         result = self._proposer.propose(replica, 4.2, 8.9, None)
@@ -43,5 +44,3 @@ class testREProposer(unittest.TestCase):
 if __name__ == '__main__':
 
     unittest.main()
-
-        

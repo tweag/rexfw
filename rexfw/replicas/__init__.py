@@ -4,15 +4,18 @@ Replica classes which sample from a single PDF
 
 from abc import abstractmethod, abstractproperty
 
+import numpy as np
+
 from rexfw import Parcel
 from rexfw.replicas.requests import GetStateAndEnergyRequest, StoreStateEnergyRequest
+
 
 class Replica(object):
 
     _current_master = None
     
-    def __init__(self, name, state, pdf, sampler_class, sampler_params, 
-                 proposers, output_folder, comm):
+    def __init__(self, name, state, pdf, sampler_class, sampler_params,
+                 proposers, storage, comm):
         '''
         Default replica class
 
@@ -38,8 +41,9 @@ class Replica(object):
                           with keys being the proposer names
         :type proposers: dict
 
-        :param output_folder: the folder where simulation output will be stored
-        :type output_folder: str
+        :param storage: storage backend which is used to write samples and 
+                        energies to permanent storage
+        :type storage: :class:.`resaas_lib.AbstractStorage`
 
         :param comm: a communicator object to communicate with the master object
                      and other replicas
@@ -56,7 +60,7 @@ class Replica(object):
         self.sampler_class = sampler_class
         self.sampler_params = sampler_params
         self.proposers = proposers
-        self.output_folder = output_folder
+        self.storage = storage
         self._comm = comm
         self._setup_sampler()
 
@@ -199,36 +203,26 @@ class Replica(object):
 
     def _dump_samples(self, request):
         '''
-        Writes samples and energies to a file, then empties list of stored samples
-        in memory
+        Writes samples and energies, then empties list of stored samples in memory
 
         :param request: a request object containing information which samples to write
         :type request: :class:`.DumpSamplesRequest`
         '''
-        import numpy, os
-
-        filename = '{}samples/samples_{}_{}-{}.pickle'.format(self.output_folder, 
-                                                              self.name, 
-                                                              request.s_min + request.offset, 
-                                                              request.s_max + request.offset)
-        with open(filename, 'wb') as opf:
-            from pickle import dump
-            dump(self.samples[::request.dump_step], opf, 2)
-
+        self.storage.save_samples(self.samples[::request.dump_step], self.name,
+                                  request.s_min + request.offset,
+                                  request.s_max + request.offset)
         self.samples = []
-        self._dump_energies()
+        self._dump_energies(request)
 
-    def _dump_energies(self):
+    def _dump_energies(self, request):
         '''
-        Updates files with replica energies and empties list of stored energies
+        Writes files with replica energies and empties list of stored energies
+        # TODO: write test
         '''
-        import numpy, os
-        
-        Es_folder = self.output_folder + 'energies/'
-        Es_filename = Es_folder + self.name + '.npy'
-        if os.path.exists(Es_filename):
-            self.energy_trace = list(numpy.load(Es_filename)) + self.energy_trace
-        numpy.save(Es_filename, numpy.array(self.energy_trace))
+        self.storage.save_energies(np.array(
+            self.energy_trace[::request.dump_step]),
+            self.name, request.s_min + request.offset,
+            request.s_max + request.offset)
         self.energy_trace = []
                 
     def process_request(self, request):

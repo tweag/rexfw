@@ -37,7 +37,8 @@ setup(
     long_description=DESCRIPTION,
     license=LICENSE,
     requires=REQUIRES,
-    include_dirs = [numpy.get_include()],
+    include_dirs=[numpy.get_include()],
+    test_suite="tests",
     classifiers=(
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',
