@@ -17,17 +17,16 @@ from ..proposers.test_proposers import MockProposer
 
 from resaas.common.storage import SimulationStorage, LocalStorageBackend
 
-def makeTmpDirs():
 
-    import os
-    from tempfile import mkdtemp
-    
-    tmpdir = mkdtemp()
-    tmp_sample_folder = '{}/samples/'.format(tmpdir)
-    os.makedirs(tmp_sample_folder)
-    os.makedirs('{}/energies/'.format(tmpdir))        
-    
-    return tmpdir + '/'
+class MockStorageBackend:
+    data = {}
+
+    def write(self, data, file_name, data_type):
+        self.data[file_name] = data
+
+    def read(self, file_name, data_type):
+        return self.data[file_name]
+
 
 class MockPDF(object):
 
@@ -39,8 +38,8 @@ class MockReplica(Replica):
 
     def __init__(self, comm):
 
-        storage = SimulationStorage('', sim_path=makeTmpDirs(),
-                                    storage_backend=LocalStorageBackend())
+        storage = SimulationStorage('', sim_path='/test',
+                                    storage_backend=MockStorageBackend())
         super(MockReplica, self).__init__('replica1', 4, MockPDF(),
                                           MockSampler, {'testparam': 4}, 
                                           {'mock_proposer1': MockProposer()},
@@ -251,11 +250,12 @@ class testReplica(unittest.TestCase):
         self._replica._dump_samples(req)
 
         output_folder = self._replica.storage.sim_path
-        fname = '{}samples/samples_{}_{}-{}.pickle'.format(
+        fname = '{}/samples/samples_{}_{}-{}.pickle'.format(
             output_folder, self._replica.name, smin + offset,
             smax + offset)
-        self.assertTrue(os.path.exists(fname))
-        dumped_samples = np.load(fname, allow_pickle=True)
+        backend = self._replica.storage._storage_backend
+        self.assertTrue(fname in backend.data)
+        dumped_samples = backend.data[fname]
         self.assertTrue(np.all(np.array(dumped_samples) == buffered_samples[::step]))
         self.assertEqual(len(self._replica.samples), 0)
 
@@ -274,11 +274,11 @@ class testReplica(unittest.TestCase):
         self._replica._dump_energies(req)
 
         output_folder = self._replica.storage.sim_path
-        fname = '{}energies/energies_{}_{}-{}.pickle'.format(
+        fname = '{}/energies/energies_{}_{}-{}.pickle'.format(
             output_folder, self._replica.name, smin + offset,
             smax + offset)
-        self.assertTrue(os.path.exists(fname))
-        energies = np.load(fname, allow_pickle=True)
+        backend = self._replica.storage._storage_backend
+        energies = backend.data[fname]
         self.assertEqual(len(energies), 1)
         self.assertEqual(energies[0], 3)
         self.assertEqual(len(self._replica.energy_trace), 0)
