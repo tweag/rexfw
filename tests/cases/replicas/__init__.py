@@ -14,8 +14,6 @@ from ..communicators.test_communicators import MockCommunicator
 from ..communicators.test_communicators import DoNothingRequestReceivingMockCommunicator
 from ..statistics import MockStatistics, MockREStatistics
 from ..proposers.test_proposers import MockProposer
-from ..communicators import MockCommunicator
-from ..communicators import DoNothingRequestReceivingMockCommunicator
 from ..statistics import MockStatistics, MockREStatistics
 from ..proposers import MockProposer
 
