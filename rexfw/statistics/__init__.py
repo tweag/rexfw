@@ -88,6 +88,7 @@ class Statistics(object):
             quantities_to_write = [e for e in self.elements
                                    if e.name in writer.quantities_to_write]
             quantities_to_write = FilterableQuantityList(quantities_to_write)
+            print(writer)
             writer.write(step, quantities_to_write)
 
     @property

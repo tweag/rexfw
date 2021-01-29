@@ -50,8 +50,10 @@ class AbstractStatisticsWriter(object):
         :type elements: list of :class:`.LoggedQuantity`
         '''
         self._write_quantity_class_header(elements[0])
-        for e in self._sort_quantities(elements):
-            self._outstream.write(self._format(e) + self._separator)
+        for i, e in enumerate(self._sort_quantities(elements)):
+            if i > 0:
+                self._outstream.write(self._separator)
+            self._outstream.write(self._format(e))
         self._outstream.write('\n')
            
 

@@ -11,6 +11,9 @@ mpi4py = "*"
 pyyaml = "*"
 resaas-common = { path = "resaas/common", develop = true }
 
+[tool.poetry.scripts]
+run_simulation = "scripts:run_simulation"
+
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.1"
 black = "^20.8b1"
