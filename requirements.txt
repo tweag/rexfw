@@ -1,3 +1,0 @@
-csb
-numpy
-mpi4py
