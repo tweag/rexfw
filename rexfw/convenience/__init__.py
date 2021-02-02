@@ -126,7 +126,7 @@ def create_default_stats_writers(sim_path, storage_backend, variable_name):
     from rexfw.statistics.writers import StandardFileMCMCStatisticsWriter
     from rexfw.statistics.writers import StandardFileREStatisticsWriter
 
-    stats_path = sim_path + 'statistics/'
+    stats_path = sim_path + '/statistics/'
     mcmc_stats_writers = [StandardConsoleMCMCStatisticsWriter([variable_name],
                                                               ['acceptance rate',
                                                                'stepsize'
@@ -271,4 +271,4 @@ def create_directories(sim_folder):
                 raise
 
     for sub in ('samples', 'statistics', 'works', 'heats', 'energies'):
-        make_sure_path_exists(sim_folder + sub)
+        make_sure_path_exists(sim_folder + '/' + sub)
