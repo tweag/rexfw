@@ -271,4 +271,4 @@ def create_directories(sim_folder):
                 raise
 
     for sub in ('samples', 'statistics', 'works', 'heats', 'energies'):
-        make_sure_path_exists(sim_folder + sub)
+        make_sure_path_exists(sim_folder + '/' + sub)
