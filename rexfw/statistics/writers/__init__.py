@@ -264,7 +264,7 @@ class AbstractFileStatisticsWriter(AbstractStatisticsWriter):
         self._write_step_header(step, stream)
         self._write_all_but_header(elements, stream)
         stream.seek(0)
-        self._storage_backend.write(stream.read(), self._filename)
+        self._storage_backend.write(stream.read(), self._filename, data_type='text')
 
     @abstractmethod
     def _write_quantity_class_header(self, class_name, stream):
