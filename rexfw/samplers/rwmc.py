@@ -34,9 +34,9 @@ class RWMCSampler(AbstractSampler):
 
     def _adapt_stepsize(self):
         if self._last_move_accepted:
-            self.stepsize *= self.adaption_downrate
-        else:
             self.stepsize *= self.adaption_uprate
+        else:
+            self.stepsize *= self.adaption_downrate
 
     def sample(self):
 
