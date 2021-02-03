@@ -353,10 +353,10 @@ class Replica(object):
         
     def get_energy(self, state):
         '''
-        Calculates replica energy (negative log-probability) for a given state
+        Calculates replica energy (untempered negative log-probability) for a given state
 
         :param state: state for which to evaluate the negative log-probability of
                       the replica's PDF
         :type state: depends on your application
         '''
-        return -self.pdf.log_prob(state)
+        return -self.pdf.bare_log_prob(state)
