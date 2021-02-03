@@ -7,7 +7,8 @@ from abc import abstractmethod, abstractproperty
 import numpy as np
 
 from rexfw import Parcel
-from rexfw.replicas.requests import GetStateAndEnergyRequest, StoreStateEnergyRequest
+from rexfw.replicas.requests import (GetStateAndNegativeLogProbRequest,
+                                     StoreStateNegativeLogProbRequest)
 
 
 class Replica(object):
@@ -84,9 +85,9 @@ class Replica(object):
             SendStatsRequest='self._send_stats({})',
             ProposeRequest='self._propose({})',
             AcceptBufferedProposalRequest='self._accept_buffered_proposal({})',
-            SendGetStateAndEnergyRequest='self._send_get_state_and_energy_request({})',
-            StoreStateEnergyRequest='self._store_state_energy({})',
-            GetStateAndEnergyRequest='self._send_state_and_energy({})',
+            SendGetStateAndNegativeLogProbRequest='self._send_get_state_and_negative_log_prob_request({})',
+            StoreStateNegativeLogProbRequest='self._store_state_negative_log_prob({})',
+            GetStateAndNegativeLogProbRequest='self._send_state_and_negative_log_prob({})',
             DumpSamplesRequest='self._dump_samples({})',
             DoNothingRequest='self._do_nothing({})',
             DieRequest='-1')
@@ -131,44 +132,45 @@ class Replica(object):
         if not self._sampler is None:
             self._sampler._state = value
 
-    def _send_state_and_energy(self, request):
+    def _send_state_and_negative_log_prob(self, request):
         '''
-        Sends the current state and energy to another replica and makes it store them
+        Sends the current state and negative log-probability to another replica and makes it store them
 
         :param request: a request object telling this replica which other replica
-                        to send state and energy to
-        :type request: :class:`.GetStateAndEnergyRequest`
+                        to send state and negative log-probability to
+        :type request: :class:`.GetStateAndNegativeLogProbRequest`
         '''
         
-        new_request = StoreStateEnergyRequest(self.name, self.state, self.energy)
+        new_request = StoreStateNegativeLogProbRequest(self.name, self.state, self.negative_log_prob)
         self._comm.send(Parcel(self.name, request.sender, new_request), request.sender)
 
-    def _send_get_state_and_energy_request(self, request):
+    def _send_get_state_and_negative_log_prob_request(self, request):
         '''
-        Sends a :class:`.GetStateAndEnergyRequest` to another replica given in the request
+        Sends a :class:`.GetStateAndNegativeLogProbRequest` to another replica given in the request
         parameter
 
         :param request: a request object telling this replica which other replica
-                        to ask for its state and energy
-        :type request: :class:`.SendGetStateAndEnergyRequest`
+                        to ask for its state and negative log-probability
+        :type request: :class:`.SendGetStateAndNegativeLogProbRequest`
         '''
         self._current_master = request.sender
-        self._comm.send(Parcel(self.name, request.partner, GetStateAndEnergyRequest(self.name)), 
-                        request.partner)    
+        self._comm.send(Parcel(self.name, request.partner,
+                               GetStateAndNegativeLogProbRequest(self.name)),
+                        request.partner)
 
-    def _store_state_energy(self, request):
+    def _store_state_negative_log_prob(self, request):
         '''
-        Stores state and energy given in request parameter. Also sends a 
+        Stores state and negative log-probability given in request parameter. Also sends a 
         :class:`.DoNothingRequest` to the master object. This is neccessary to
         keep communication in sync
         
 
-        :param request: a request object containing current state and energy of a different
-                        replica
-        :type request: :class:`.StoreStateEnergyRequest`
+        :param request: a request object containing current state and negative log-probability
+                        of a different replica
+        :type request: :class:`.StoreStateNegativeLogProbRequest`
         '''
         self._buffered_partner_state = request.state
-        self._buffered_partner_energy = request.energy
+        self._buffered_partner_negative_log_prob = request.negative_log_prob
         from rexfw.replicas.requests import DoNothingRequest
         parcel = Parcel(self.name, self._current_master, DoNothingRequest(self.name))
         self._comm.send(parcel, dest=self._current_master)
@@ -296,7 +298,7 @@ class Replica(object):
         self.proposers[proposer].partner_name = partner_name
         proposal = self.proposers[proposer].propose(self, 
                                                     self._buffered_partner_state,
-                                                    self._buffered_partner_energy,
+                                                    self._buffered_partner_negative_log_prob,
                                                     proposer_params)
 
         return proposal
@@ -342,8 +344,8 @@ class Replica(object):
     @property
     def energy(self):
         '''
-        Returns the replica energy, that is, the negative log-probability of the replica's
-        PDF evaluated at the current state
+        Returns the replica energy, that is, the untempered negative
+        log-probability of the replica's PDF evaluated at the current state
 
         :return: the current replica energy
         :rtype: depends on your application
@@ -360,3 +362,25 @@ class Replica(object):
         :type state: depends on your application
         '''
         return -self.pdf.bare_log_prob(state)
+
+    @property
+    def negative_log_prob(self):
+        '''
+        Returns the replica's negative log-probability, that is, the replica's
+        PDF evaluated at the current state.
+
+        :return: the current replica negative log-probability
+        :rtype: depends on your application
+        '''
+
+        return self.get_negative_log_prob(self.state)
+
+    def get_negative_log_prob(self, state):
+        '''
+        Calculates the (tempered) negative log-probability for a given state
+
+        :param state: state for which to evaluate the negative log-probability of
+                      the replica's PDF
+        :type state: depends on your application
+        '''
+        return -self.pdf.log_prob(state)

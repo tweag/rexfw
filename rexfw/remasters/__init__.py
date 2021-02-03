@@ -6,7 +6,7 @@ import numpy as np
 
 from rexfw import Parcel
 from rexfw.remasters.requests import SampleRequest, DieRequest, ProposeRequest, AcceptBufferedProposalRequest
-from rexfw.remasters.requests import GetStateAndEnergyRequest_master, SendGetStateAndEnergyRequest
+from rexfw.remasters.requests import GetStateAndNegativeLogProbRequest, SendGetStateAndNegativeLogProbRequest
 from rexfw.remasters.requests import DumpSamplesRequest, SendStatsRequest
 
 from abc import abstractmethod
@@ -112,7 +112,7 @@ class ExchangeMaster(object):
         :type replica2: str
         '''
         self._comm.send(Parcel(self.name, replica2,
-                               SendGetStateAndEnergyRequest(self.name, replica1)),
+                               SendGetStateAndNegativeLogProbRequest(self.name, replica1)),
                         replica2)
         self._comm.recv(source=replica2)
 
