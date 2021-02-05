@@ -315,7 +315,7 @@ class ExchangeMaster(object):
         :type statistics_update_interval: int
         '''
 
-        for step in range(n_iterations):
+        for step in range(n_iterations + 1):
             if step % swap_interval == 0 and step > 0:
                 swap_list = self._calculate_swap_list(step)
                 results = self._perform_exchanges(swap_list)
