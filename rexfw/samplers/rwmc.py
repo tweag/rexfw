@@ -44,7 +44,7 @@ class RWMCSampler(AbstractSampler):
         proposal = self.state + np.random.uniform(low=-self.stepsize, high=self.stepsize)
         E_new = -self.pdf.log_prob(proposal)
 
-        accepted = np.random.random() < np.exp(-(E_new - E_old))
+        accepted = np.log(np.random.random()) < -(E_new - E_old)
 
         if accepted:
             self.state = proposal
