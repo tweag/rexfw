@@ -150,25 +150,25 @@ class testExchangeMaster(unittest.TestCase):
         self._checkProposeRequest(last_sent, self._replica_names[0],
                                   self._replica_names[1])
         
-    def _checkGetStateAndEnergyRequest(self, sent_obj, dest, partner):
+    def _checkGetStateAndNegativeLogProbRequest(self, sent_obj, dest, partner):
 
-        from rexfw.remasters.requests import SendGetStateAndEnergyRequest
+        from rexfw.remasters.requests import SendGetStateAndNegativeLogProbRequest
         
         self._checkParcel(sent_obj, dest)
         self.assertTrue(isinstance(sent_obj.data,
-                                   SendGetStateAndEnergyRequest))
+                                   SendGetStateAndNegativeLogProbRequest))
         request = sent_obj.data
         self.assertEqual(request.sender, self._remaster.name)
         self.assertEqual(request.partner, partner)
         
-    def testSendGetStateAndEnergyRequest(self):
+    def testSendGetStateAndNegativeLogProbRequest(self):
 
         self._setUpExchangeMaster(MockCommunicator())
         
         self._remaster._send_get_state_and_energy_request(self._replica_names[0],
                                                           self._replica_names[1])
         (last_sent, last_dest) = self._comm.sent.pop()
-        self._checkGetStateAndEnergyRequest(last_sent,
+        self._checkGetStateAndNegativeLogProbRequest(last_sent,
                                             self._replica_names[1],
                                             self._replica_names[0])
         
@@ -187,9 +187,9 @@ class testExchangeMaster(unittest.TestCase):
             self._remaster._trigger_proposal_calculation(swap_list)
             params = swap[2]
 
-            self._checkGetStateAndEnergyRequest(self._comm.sent.popleft()[0],
+            self._checkGetStateAndNegativeLogProbRequest(self._comm.sent.popleft()[0],
                                                     r2, r1)
-            self._checkGetStateAndEnergyRequest(self._comm.sent.popleft()[0],
+            self._checkGetStateAndNegativeLogProbRequest(self._comm.sent.popleft()[0],
                                                     r1, r2)
             self._checkProposeRequest(self._comm.sent.popleft()[0],
                                       r1, r2)

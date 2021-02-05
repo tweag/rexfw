@@ -135,8 +135,7 @@ def create_default_stats_writers(sim_path, storage_backend, variable_name):
                                                            storage_backend,
                                                            [variable_name],
                                                            ['acceptance rate',
-                                                            'stepsize'])
-                         ]
+                                                            'stepsize'])]
     re_stats_writers = [StandardConsoleREStatisticsWriter(),
                         StandardFileREStatisticsWriter(stats_path + 're_stats.txt',
                                                        storage_backend,

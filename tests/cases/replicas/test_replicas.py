@@ -34,6 +34,11 @@ class MockPDF(object):
 
         return x
 
+    def bare_log_prob(self, x):
+
+        return x
+
+
 class MockReplica(Replica):
 
     def __init__(self, comm):
@@ -61,7 +66,7 @@ class ProposeMockReplica(MockReplica):
 
         self.works_heats_sent = False
         self._buffered_partner_state = 34
-        self._buffered_partner_energy = 66
+        self._buffered_partner_negative_log_prob = 66
         self._buffered_proposal = 44
 
     def _calculate_proposal(self, request):
@@ -82,7 +87,7 @@ class CalculateProposalMockReplica(MockReplica):
         super(CalculateProposalMockReplica, self).__init__(comm)
 
         self._buffered_partner_state = 34
-        self._buffered_partner_energy = 66
+        self._buffered_partner_negative_log_prob = 66
         self.pick_proposer_called = 0
 
     def _pick_proposer(self, params):
@@ -91,6 +96,10 @@ class CalculateProposalMockReplica(MockReplica):
         return 'mock_proposer1'
 
     def get_energy(self, state):
+
+        return 42
+
+    def get_negative_log_prob(self, state):
 
         return 42
 
@@ -163,47 +172,47 @@ class testReplica(unittest.TestCase):
         self.assertEqual(obj.sender, sender)
         self.assertEqual(obj.receiver, dest)
     
-    def testSendStateAndEnergy(self):
+    def testSendStateAndNegativeLogProb(self):
 
-        from rexfw.replicas.requests import GetStateAndEnergyRequest
+        from rexfw.replicas.requests import GetStateAndNegativeLogProbRequest
         
         sender = self._replica.name
         other = 'replica23'
-        req = GetStateAndEnergyRequest(other)
-        self._replica._send_state_and_energy(req)
+        req = GetStateAndNegativeLogProbRequest(other)
+        self._replica._send_state_and_negative_log_prob(req)
 
         last_sent, dest = self._replica._comm.sent.pop()
         self.assertEqual(dest, other)
         self._checkParcel(last_sent, other, sender)
         self.assertEqual(last_sent.data.sender, self._replica.name)
         self.assertEqual(last_sent.data.state, self._replica.state)
-        self.assertEqual(last_sent.data.energy, self._replica.energy)
+        self.assertEqual(last_sent.data.negative_log_prob, self._replica.negative_log_prob)
 
-    def testSendGetStateAndEnergyRequest(self):
+    def testSendGetStateAndNegativeLogProbRequest(self):
 
-        from rexfw.remasters.requests import SendGetStateAndEnergyRequest
-        from rexfw.replicas.requests import GetStateAndEnergyRequest
+        from rexfw.remasters.requests import SendGetStateAndNegativeLogProbRequest
+        from rexfw.replicas.requests import GetStateAndNegativeLogProbRequest
         
         other = 'replica123'
-        req = SendGetStateAndEnergyRequest('remaster0', other)
-        self._replica._send_get_state_and_energy_request(req)
+        req = SendGetStateAndNegativeLogProbRequest('remaster0', other)
+        self._replica._send_get_state_and_negative_log_prob_request(req)
 
         last_sent, dest = self._replica._comm.sent.pop()
         self.assertEqual(dest, 'replica123')
         self._checkParcel(last_sent, other, self._replica.name)
-        self.assertTrue(isinstance(last_sent.data, GetStateAndEnergyRequest))
+        self.assertTrue(isinstance(last_sent.data, GetStateAndNegativeLogProbRequest))
         self.assertEqual(last_sent.data.sender, self._replica.name)
 
-    def testStoreStateEnergy(self):
+    def testStoreStateNegativeLogProb(self):
 
-        from rexfw.replicas.requests import StoreStateEnergyRequest, DoNothingRequest
+        from rexfw.replicas.requests import StoreStateNegativeLogProbRequest, DoNothingRequest
 
         other = 'replica234'
-        req = StoreStateEnergyRequest(other, 2.5, 99)
-        self._replica._store_state_energy(req)
+        req = StoreStateNegativeLogProbRequest(other, 2.5, 99)
+        self._replica._store_state_negative_log_prob(req)
 
         self.assertEqual(self._replica._buffered_partner_state, 2.5)
-        self.assertEqual(self._replica._buffered_partner_energy, 99)
+        self.assertEqual(self._replica._buffered_partner_negative_log_prob, 99)
         last_sent, dest = self._replica._comm.sent.pop()
         self.assertEqual(dest, self._replica._current_master)
         self._checkParcel(last_sent, self._replica._current_master, self._replica.name)

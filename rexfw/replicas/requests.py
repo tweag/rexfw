@@ -4,7 +4,7 @@ Requests replicas can send to :class:`.ExchangeMaster` or other :class:`.Replica
 
 from collections import namedtuple
 
-        
-GetStateAndEnergyRequest = namedtuple('GetStateAndEnergyRequest', 'sender')
-StoreStateEnergyRequest = namedtuple('StoreStateEnergyRequest', 'sender state energy')
+
+GetStateAndNegativeLogProbRequest = namedtuple('GetStateAndNegativeLogProbRequest', 'sender')
+StoreStateNegativeLogProbRequest = namedtuple('StoreStateNegativeLogProbRequest', 'sender state negative_log_prob')
 DoNothingRequest = namedtuple('DoNothingRequest', 'sender')

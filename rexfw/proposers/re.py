@@ -7,9 +7,10 @@ from rexfw.proposers import AbstractProposer, GeneralTrajectory
 
 class REProposer(AbstractProposer):
 
-    def propose(self, local_replica, partner_state, partner_energy, params):
+    def propose(self, local_replica, partner_state, partner_negative_log_prob,
+                params):
 
-        work =   local_replica.get_energy(partner_state) \
-               - partner_energy
+        work =   local_replica.get_negative_log_prob(partner_state) \
+               - partner_negative_log_prob
 
         return GeneralTrajectory([partner_state, partner_state], work=work)

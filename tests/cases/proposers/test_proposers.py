@@ -16,7 +16,7 @@ class MockProposer(AbstractProposer):
         super(MockProposer, self).__init__('mock_proposer')
         self.traj = GeneralTrajectory([start, end])
 
-    def propose(self, local_replica, partner_state, partner_energy, params):
+    def propose(self, local_replica, partner_state, partner_negative_log_prob, params):
 
         return self.traj
 
