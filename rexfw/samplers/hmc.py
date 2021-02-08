@@ -1,11 +1,10 @@
 '''
 HMC sampler implementations
 '''
-
 from collections import namedtuple
-from copy import deepcopy
 
 import numpy as np
+
 
 HMCSampleStats = namedtuple('HMCSampleStats', 'accepted stepsize')
 
@@ -97,7 +96,7 @@ class HMCSampler(object):
         :rtype: (numpy.ndarray, numpy.ndarray)
         """
 
-        gradient = lambda x: -self.pdf.log_prob_gradient(x)
+        def gradient(x): return -self.pdf.log_prob_gradient(x)
 
         p -= 0.5 * timestep * gradient(q)
 
@@ -118,7 +117,6 @@ class HMCSampler(object):
         :type state: numpy.ndarray
         """
         return state.copy()
-        return deepcopy(state)
 
     def sample(self):
         """
@@ -178,7 +176,6 @@ class HMCSampler(object):
             self.timestep *= self.adaption_downrate
 
 
-
 if __name__ == '__main__':
     class HO:
         def log_prob(self, x):
@@ -186,7 +183,6 @@ if __name__ == '__main__':
 
         def log_prob_gradient(self, x):
             return -x
-
 
     init_state = np.array([0.0, 1.0])
     s = HMCSampler(HO(), init_state, 0.5, 10)
@@ -196,7 +192,7 @@ if __name__ == '__main__':
     fig, ax = plt.subplots()
     from scipy.stats import norm
     for i, x in enumerate(init_state):
-        ax.hist(samples[:,i], bins=40, alpha=0.5, density=True)
+        ax.hist(samples[:, i], bins=40, alpha=0.5, density=True)
     xspace = np.linspace(-3, 3, 100)
     ax.plot(xspace, norm.pdf(xspace))
     plt.show()
