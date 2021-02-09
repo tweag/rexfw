@@ -36,8 +36,8 @@ class GraphiteStatisticsWriter(AbstractStatisticsWriter):
         return []
 
     def write(self, step, elements):
-        listOfStatsTuples = self.make_tuples_list(step, elements)
-        payload = dumps(listOfStatsTuples, protocol=2)
+        list_of_stats_tuples = self.make_tuples_list(step, elements)
+        payload = dumps(list_of_stats_tuples, protocol=2)
         size = pack("!L", len(payload))
         self.sock.sendall(size)
         self.sock.sendall(payload)
