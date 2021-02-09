@@ -73,7 +73,7 @@ class GraphiteMCMCStatisticsWriter(GraphiteStatisticsWriter):
         timestamp = -1
         ## LOCAL tag
         tag = "scope=" + "LOCAL_" + self.job_name
-        listOfStatsTuples = []
+        list_of_stats_tuples = []
         for e in elements:
             if e.name == "acceptance rate" and len(e.origins) == 1:
                 path = (
