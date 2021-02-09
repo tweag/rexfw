@@ -52,7 +52,7 @@ class GraphiteREStatisticsWriter(GraphiteStatisticsWriter):
         timestamp = -1
         ## GLOBAL tag
         tag = "scope=" + "GLOBAL_" + self.job_name
-        listOfStatsTuples = []
+        list_of_stats_tuples = []
         for e in elements:
             if e.name == "acceptance rate" and len(e.origins) == 2:
                 path = (
