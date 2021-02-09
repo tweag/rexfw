@@ -83,5 +83,5 @@ class GraphiteMCMCStatisticsWriter(GraphiteStatisticsWriter):
             if e.name == "stepsize":
                 path = self.job_name + "." + "stepsize" + ";" + tag
 
-                listOfStatsTuples.append((path, (timestamp, e.current_value)))
-        return listOfStatsTuples
+                list_of_stats_tuples.append((path, (timestamp, e.current_value)))
+        return list_of_stats_tuples
