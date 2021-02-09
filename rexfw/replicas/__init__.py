@@ -130,7 +130,7 @@ class Replica(object):
         '''
         self._state = value
         if not self._sampler is None:
-            self._sampler._state = value
+            self._sampler.state = value
 
     def _send_state_and_negative_log_prob(self, request):
         '''
