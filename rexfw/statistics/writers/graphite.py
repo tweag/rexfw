@@ -79,7 +79,7 @@ class GraphiteMCMCStatisticsWriter(GraphiteStatisticsWriter):
                 path = (
                     self.job_name + "." + e.origins[0] + "." + "acceptance_rate.local" + ";" + tag
                 )
-                listOfStatsTuples.append((path, (timestamp, e.current_value)))
+                list_of_stats_tuples.append((path, (timestamp, e.current_value)))
             if e.name == "stepsize":
                 path = self.job_name + "." + "stepsize" + ";" + tag
 
