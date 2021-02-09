@@ -20,8 +20,8 @@ class GraphiteStatisticsWriter(AbstractStatisticsWriter):
     def __init__(
         self,
         job_name,
-        quantities_to_write=[],
         variables_to_write=[],
+        quantities_to_write=[],
         graphite_url="127.0.0.1",
         graphite_port=2004,
     ):
