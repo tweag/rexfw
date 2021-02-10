@@ -31,7 +31,15 @@ if rank == 0:
 
     create_directories(output_folder)
     ## sets up a default RE master object; should be sufficient for all practical purposes
-    master = setup_default_re_master(n_replicas, output_folder, LocalStorageBackend(), comm)    
+    if False:
+        graphite_params = {'job_name': 'test_job',
+                           'graphite_url': '127.0.0.1',
+                           'graphite_port': 2004}
+    else:
+        graphite_params = None
+    master = setup_default_re_master(n_replicas, output_folder,
+                                     LocalStorageBackend(), comm,
+                                     graphite_params)
     master.run(10000,                    # number of MCMC samples
                swap_interval=5,          # interval of exchange attempts
                status_interval=50,       # interval with which to print / write out sampling statistics
