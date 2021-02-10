@@ -66,7 +66,6 @@ class GraphiteREStatisticsWriter(GraphiteStatisticsWriter):
                     + tag
                 )
                 list_of_stats_tuples.append((path, (timestamp, e.current_value)))
-        print(list_of_stats_tuples)
         return list_of_stats_tuples
 
 
