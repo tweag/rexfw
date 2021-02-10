@@ -50,20 +50,10 @@ class GraphiteStatisticsWriter(AbstractStatisticsWriter):
 class GraphiteREStatisticsWriter(GraphiteStatisticsWriter):
     def make_tuples_list(self, step, elements):
         timestamp = -1
-        ## GLOBAL tag
-        tag = "scope=" + "GLOBAL_" + self.job_name
         list_of_stats_tuples = []
         for e in elements:
             if e.name == "acceptance rate" and len(e.origins) == 2:
-                path = (
-                    self.job_name
-                    + "."
-                    + "_".join(e.origins)
-                    + "."
-                    + "acceptance_rate.re"
-                    + ";"
-                    + tag
-                )
+                path = self.job_name + "." + "_".join(e.origins) + "." + "acceptance_rate.re"
                 list_of_stats_tuples.append((path, (timestamp, e.current_value)))
         return list_of_stats_tuples
 
@@ -71,17 +61,13 @@ class GraphiteREStatisticsWriter(GraphiteStatisticsWriter):
 class GraphiteMCMCStatisticsWriter(GraphiteStatisticsWriter):
     def make_tuples_list(self, step, elements):
         timestamp = -1
-        ## LOCAL tag
-        tag = "scope=" + "LOCAL_" + self.job_name
         list_of_stats_tuples = []
         for e in elements:
             if e.name == "acceptance rate" and len(e.origins) == 1:
-                path = (
-                    self.job_name + "." + e.origins[0] + "." + "acceptance_rate.local" + ";" + tag
-                )
+                path = self.job_name + "." + e.origins[0] + "." + "acceptance_rate.local"
                 list_of_stats_tuples.append((path, (timestamp, e.current_value)))
             if e.name == "stepsize":
-                path = self.job_name + "." + "stepsize" + ";" + tag
+                path = self.job_name + "." + "stepsize"
 
                 list_of_stats_tuples.append((path, (timestamp, e.current_value)))
         return list_of_stats_tuples
