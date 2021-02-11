@@ -25,7 +25,8 @@ class GraphiteStatisticsWriter(AbstractStatisticsWriter):
         graphite_url="127.0.0.1",
         graphite_port=2004,
     ):
-        super(GraphiteStatisticsWriter, self).__init__(variables_to_write, quantities_to_write)
+        super(GraphiteStatisticsWriter, self).__init__("", variables_to_write,
+                                                       quantities_to_write)
         self.job_name = job_name
         self.sock = socket()
         self.sock.connect((graphite_url, graphite_port))

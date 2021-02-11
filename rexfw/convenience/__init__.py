@@ -143,7 +143,7 @@ def create_default_stats_writers(sim_path, storage_backend, variable_name):
 
     return mcmc_stats_writers, re_stats_writers
 
-def setup_default_re_master(n_replicas, sim_path, storage_backend, comm):
+def setup_default_re_master(n_replicas, sim_path, storage_backend, comm, graphite_params=None):
     '''
     Creates a default :class:`.ExchangeMaster` object for Replica Exchange. This should suffice
     for most applications.
@@ -153,7 +153,11 @@ def setup_default_re_master(n_replicas, sim_path, storage_backend, comm):
 
     :param storage_backend: storage backend to write to
     :type storage_backend: :class:`AbstractStorageBackend`
-    
+
+    :param dict graphite_params: parameters passed to the Graphite stats writer constructor. If
+                                 None, no Graphite stats writer is used. Parameters are "job_name",
+                                 "graphite_url" (IP address) and "graphite_port".
+
     :param comm: a :class:`.AbstractCommunicator` object responsible for communication
                  with the replicas
     :type comm: :class:`.AbstractCommunicator`
@@ -166,6 +170,8 @@ def setup_default_re_master(n_replicas, sim_path, storage_backend, comm):
     from rexfw.statistics import Statistics, REStatistics
     from rexfw.convenience import create_default_RE_params
     from rexfw.convenience.statistics import create_default_works, create_default_heats
+    from rexfw.statistics.writers.graphite import (GraphiteREStatisticsWriter,
+                                                   GraphiteMCMCStatisticsWriter)
 
     variable_name = 'x'
     replica_names = ['replica{}'.format(i) for i in range(1, n_replicas + 1)]
@@ -174,16 +180,20 @@ def setup_default_re_master(n_replicas, sim_path, storage_backend, comm):
     mcmc_pacc_avgs, re_pacc_avgs, stepsizes = create_default_stats_elements(replica_names,
                                                                             variable_name)
     
-    works = create_default_works(replica_names)
-    heats = create_default_heats(replica_names)
     mcmc_stats_writers, re_stats_writers = create_default_stats_writers(sim_path,
                                                                         storage_backend,
                                                                         variable_name='x')
+    if graphite_params is not None:
+        mcmc_stats_writers += [GraphiteMCMCStatisticsWriter(
+            variables_to_write=['x'], quantities_to_write=['acceptance rate', 'stepsize'],
+            **graphite_params)]
+        re_stats_writers += [GraphiteREStatisticsWriter(
+            quantities_to_write=['acceptance rate'], **graphite_params)]
+
     stats = Statistics(elements=mcmc_pacc_avgs + stepsizes, 
                        stats_writer=mcmc_stats_writers)
-    works_path = sim_path + 'works/'
     re_stats = REStatistics(elements=re_pacc_avgs,
-                            work_elements=works, heat_elements=heats,
+                            work_elements=[], heat_elements=[],
                             stats_writer=re_stats_writers)
     
     master = ExchangeMaster('master0', replica_names, params, comm=comm, 
