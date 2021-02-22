@@ -8,7 +8,7 @@ from collections import namedtuple
 from rexfw.samplers import AbstractSampler
 
 
-RWMCSampleStats = namedtuple('RWMCSampleStats', 'accepted total stepsize')
+RWMCSampleStats = namedtuple('RWMCSampleStats', 'accepted total stepsize neg_log_prob')
 
 
 class RWMCSampler(AbstractSampler):
@@ -29,8 +29,9 @@ class RWMCSampler(AbstractSampler):
     @property
     def last_draw_stats(self):
 
-        return {self.variable_name: RWMCSampleStats(self._last_move_accepted, 
-                                                    self._n_moves, self.stepsize)}
+        return {self.variable_name: RWMCSampleStats(
+            self._last_move_accepted, self._n_moves, self.stepsize,
+            -self.pdf.log_prob(self.state))}
 
     def _adapt_stepsize(self):
         if self._last_move_accepted:

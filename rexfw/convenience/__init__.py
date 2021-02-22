@@ -108,7 +108,7 @@ def create_default_stats_elements(replica_names, variable_name):
     re_pacc_avgs = create_default_RE_averages(replica_names)
     stepsizes = create_default_stepsizes(replica_names, variable_name)
     neg_log_probs = [NegativeLogProb(replica_name, variable_name)
-                     for replica_name in replicas_names]
+                     for replica_name in replica_names]
     
     return mcmc_pacc_avgs, re_pacc_avgs, stepsizes, neg_log_probs
 

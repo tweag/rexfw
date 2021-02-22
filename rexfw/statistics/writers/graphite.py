@@ -54,7 +54,7 @@ class GraphiteREStatisticsWriter(GraphiteStatisticsWriter):
         list_of_stats_tuples = []
         for e in elements:
             if e.name == "acceptance rate" and len(e.origins) == 2:
-                path = self.job_name + "." + "_".join(e.origins) + "." + "acceptance_rate.re"
+                path = self.job_name + "." + "_".join(e.origins) + "." + "acceptance_rate"
                 list_of_stats_tuples.append((path, (timestamp, e.current_value)))
         return list_of_stats_tuples
 
@@ -67,7 +67,7 @@ class GraphiteMCMCStatisticsWriter(GraphiteStatisticsWriter):
             log_this = False
             path_template = self.job_name + "." + e.origins[0] + ".{}"
             if e.name == "acceptance rate" and len(e.origins) == 1:
-                path = path_template.format("acceptance_rate.local")
+                path = path_template.format("acceptance_rate")
                 log_this = True
             if e.name == "stepsize":
                 path = path_template.format("stepsize")
@@ -75,7 +75,6 @@ class GraphiteMCMCStatisticsWriter(GraphiteStatisticsWriter):
             if e.name == "neg_log_prob":
                 path = path_template.format("negative_log_prob")
                 log_this = True
-
             if log_this:
-                list_of_stats_tuples.append((path, (timestamp, e.current_value)))
+                list_of_stats_tuples.append((path, (timestamp, float(e.current_value))))
         return list_of_stats_tuples
