@@ -102,12 +102,15 @@ def create_default_stats_elements(replica_names, variable_name):
     from rexfw.convenience.statistics import create_default_MCMC_averages
     from rexfw.convenience.statistics import create_default_RE_averages
     from rexfw.convenience.statistics import create_default_stepsizes    
+    from rexfw.statistics.logged_quantities import NegativeLogProb
 
     mcmc_pacc_avgs = create_default_MCMC_averages(replica_names, variable_name)
     re_pacc_avgs = create_default_RE_averages(replica_names)
     stepsizes = create_default_stepsizes(replica_names, variable_name)
+    neg_log_probs = [NegativeLogProb(replica_name, variable_name)
+                     for replica_name in replicas_names]
     
-    return mcmc_pacc_avgs, re_pacc_avgs, stepsizes    
+    return mcmc_pacc_avgs, re_pacc_avgs, stepsizes, neg_log_probs
 
 def create_default_stats_writers(sim_path, storage_backend, variable_name):
     '''
@@ -169,7 +172,6 @@ def setup_default_re_master(n_replicas, sim_path, storage_backend, comm, graphit
     from rexfw.remasters import ExchangeMaster
     from rexfw.statistics import Statistics, REStatistics
     from rexfw.convenience import create_default_RE_params
-    from rexfw.convenience.statistics import create_default_works, create_default_heats
     from rexfw.statistics.writers.graphite import (GraphiteREStatisticsWriter,
                                                    GraphiteMCMCStatisticsWriter)
 
@@ -177,26 +179,27 @@ def setup_default_re_master(n_replicas, sim_path, storage_backend, comm, graphit
     replica_names = ['replica{}'.format(i) for i in range(1, n_replicas + 1)]
     params = create_default_RE_params(n_replicas)
     
-    mcmc_pacc_avgs, re_pacc_avgs, stepsizes = create_default_stats_elements(replica_names,
-                                                                            variable_name)
+    mcmc_pacc_avgs, re_pacc_avgs, stepsizes, neg_log_probs = \
+      create_default_stats_elements(replica_names, variable_name)
     
     mcmc_stats_writers, re_stats_writers = create_default_stats_writers(sim_path,
                                                                         storage_backend,
                                                                         variable_name='x')
     if graphite_params is not None:
         mcmc_stats_writers += [GraphiteMCMCStatisticsWriter(
-            variables_to_write=['x'], quantities_to_write=['acceptance rate', 'stepsize'],
+            variables_to_write=['x'], quantities_to_write=[
+                'acceptance rate', 'stepsize', 'neg_log_prob'],
             **graphite_params)]
         re_stats_writers += [GraphiteREStatisticsWriter(
             quantities_to_write=['acceptance rate'], **graphite_params)]
 
-    stats = Statistics(elements=mcmc_pacc_avgs + stepsizes, 
+    stats = Statistics(elements=mcmc_pacc_avgs + stepsizes + neg_log_probs,
                        stats_writer=mcmc_stats_writers)
     re_stats = REStatistics(elements=re_pacc_avgs,
                             work_elements=[], heat_elements=[],
                             stats_writer=re_stats_writers)
-    
-    master = ExchangeMaster('master0', replica_names, params, comm=comm, 
+
+    master = ExchangeMaster('master0', replica_names, params, comm=comm,
                             sampling_statistics=stats, swap_statistics=re_stats)
 
     return master
