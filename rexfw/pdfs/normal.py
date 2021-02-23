@@ -1,6 +1,7 @@
 '''
 A normal distribution as an example for the PDF interface
 '''
+import numpy as np
 
 from rexfw.pdfs import AbstractPDF
 
@@ -13,4 +14,4 @@ class Normal(AbstractPDF):
 
     def log_prob(self, x):
         
-        return -0.5 * (x - self.mu) ** 2 / self.sigma / self.sigma
+        return -0.5 * np.sum((x - self.mu) ** 2) / self.sigma / self.sigma

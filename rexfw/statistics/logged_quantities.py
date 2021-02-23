@@ -106,7 +106,32 @@ class SamplerStepsize(LoggedQuantity):
 
         return '{} {} {}: {}'.format(self.origins[0], self.variable_name, 
                                      self.name,self.current_value)
-        
+
+
+class NegativeLogProb(LoggedQuantity):
+
+    def __init__(self, replica, variable_name):
+        '''
+        Logged quantity which tracks negative log probabilties of a sampler
+
+        :param str replica: the name of the replica whose negative log-prob is being
+                            tracked
+        :param str variable_name: the name of the sampling variable associated with the
+                                  negative log-prob
+        '''
+
+        super(NegativeLogProb, self).__init__([replica], ['neg_log_prob'], 'neg_log_prob',
+                                              variable_name)
+
+    def _get_value(self, stats):
+
+        return stats[self.variable_name].neg_log_prob
+
+    def __repr__(self):
+
+        return '{} {} {}: {}'.format(self.origins[0], self.variable_name, 
+                                     self.name, self.current_value)
+
 
 class REWorks(LoggedQuantity):
 
